@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Grid Scanner"/>
+<meta name="theme-color" content="#070b0e"/>
+<title>Futures Grid Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#070b0e;font-family:'Syne',sans-serif;color:#fff;min-height:100vh;padding:env(safe-area-inset-top, 28px) 16px 60px;padding-top:max(28px, env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center}
+  input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;color:#fff;font-size:14px;font-family:'Fira Code',monospace;letter-spacing:1.5px;transition:all 0.2s;-webkit-appearance:none}
+  input:focus{outline:none;border-color:#00ddff;box-shadow:0 0 0 2px rgba(0,221,255,0.12)}
+  button{cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.2s}
+  button:active{transform:scale(0.97)}
+  .pill{padding:5px 13px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;color:#445;font-size:11px;font-family:'Fira Code',monospace}
+  .pill.active{background:rgba(0,221,255,0.1);border-color:rgba(0,221,255,0.3);color:#00ddff}
+  .pill:hover{border-color:#00ddff55;color:#00ddff88}
+  .card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px}
+  .metric-row{padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:10px}
+  .metric-row:last-child{border-bottom:none}
+  .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.07)}
+  .dot.filled-high{background:#00ff88;box-shadow:0 0 5px #00ff88}
+  .dot.filled-mid{background:#7fff44;box-shadow:0 0 5px #7fff44}
+  .dot.filled-low{background:#ffcc00;box-shadow:0 0 5px #ffcc00}
+  .dot.filled-bad{background:#ff4455;box-shadow:0 0 5px #ff4455}
+  .param-box{background:rgba(0,221,255,0.04);border:1px solid rgba(0,221,255,0.08);border-radius:10px;padding:10px 14px}
+  .pro-con-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px;flex:1}
+  @keyframes fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+  @keyframes barMove{0%{width:15%}50%{width:80%}100%{width:15%}}
+  .fadein{animation:fadein 0.55s ease both}
+  .blink{animation:blink 1.4s ease infinite}
+  .loading-bar-inner{animation:barMove 2s ease infinite}
+  #results{display:none}
+  #loading{display:none;text-align:center;margin-bottom:24px}
+  #error-box{display:none;width:100%;max-width:480px;padding:13px 18px;background:rgba(255,68,85,0.07);border:1px solid rgba(255,68,85,0.2);border-radius:12px;color:#ff7788;font-size:13px;font-family:'Fira Code',monospace;margin-bottom:14px}
+  #hint{color:#1a2a2a;font-size:12px;font-family:'Fira Code',monospace;margin-top:10px;text-align:center}
+  .grid-params{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pro-con-row{display:flex;gap:10px;margin-bottom:10px}
+  #cat-tabs{scrollbar-width:none}
+  #cat-tabs::-webkit-scrollbar{display:none}
+  @media(max-width:360px){.grid-params{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div style="text-align:center;margin-bottom:34px;max-width:480px;width:100%">
+  <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 16px;border:1px solid rgba(0,221,255,0.2);border-radius:20px;margin-bottom:16px">
+    <div class="blink" style="width:6px;height:6px;border-radius:50%;background:#00ff88"></div>
+    <span style="font-size:10px;letter-spacing:3px;color:#00ddff;text-transform:uppercase;font-family:'Fira Code',monospace">Powered by Claude AI</span>
+  </div>
+  <h1 style="font-size:30px;font-weight:800;line-height:1.15">
+    FUTURES GRID<br>
+    <span style="color:#00ddff;font-family:'Fira Code',monospace">SCANNER</span>
+  </h1>
+  <p style="color:#334;font-size:12px;margin-top:10px">Introdu orice simbol · Claude analizează volatilitatea, lichiditatea și trendul</p>
+</div>
+
+<!-- Input -->
+<div style="width:100%;max-width:480px;margin-bottom:14px">
+  <div style="display:flex;gap:8px">
+    <div style="position:relative;flex:1">
+      <input id="sym-input" value="" placeholder="Cauta coin... SOL, BTC, PEPE..." autocomplete="off"
+        oninput="showSugg(this.value)" onkeydown="inputKey(event)" onfocus="showSugg(this.value)"
+        style="width:100%"/>
+      <div id="sugg-box" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0d1317;border:1px solid rgba(0,221,255,0.18);border-radius:12px;overflow:hidden;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,0.6)"></div>
+    </div>
+    <button onclick="analyze()" id="scan-btn" style="padding:13px 22px;background:#00ddff;border:none;border-radius:12px;color:#04090c;font-weight:800;font-size:13px;letter-spacing:0.5px;white-space:nowrap">SCANEAZĂ</button>
+  </div>
+</div>
+
+<!-- Category tabs -->
+<div id="cat-tabs" style="display:flex;gap:6px;margin-bottom:10px;max-width:480px;width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none"></div>
+<!-- Quick coins -->
+<div id="pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;justify-content:center;max-width:480px;max-height:160px;overflow-y:auto;padding:4px 2px;scrollbar-width:thin;scrollbar-color:#1a2a2a transparent"></div>
+
+<!-- Loading -->
+<div id="loading">
+  <div style="width:240px;height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin:0 auto 12px;overflow:hidden">
+    <div class="loading-bar-inner" style="height:100%;background:linear-gradient(90deg,#00ddff,#00ff88);border-radius:2px"></div>
+  </div>
+  <div id="loading-msg" style="color:#00ddff;font-size:11px;font-family:'Fira Code',monospace;letter-spacing:1px"></div>
+</div>
+
+<!-- Error -->
+<div id="error-box"></div>
+
+<!-- Hint -->
+<div id="hint">selectează un coin sau introdu simbolul și apasă SCANEAZĂ</div>
+
+<!-- Results -->
+<div id="results" style="width:100%;max-width:480px"></div>
+
+<script>
+const CATEGORIES = {
+  "🔥 Top": ["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","AVAX","DOT","MATIC","LTC","ATOM"],
+  "🤖 AI": ["WLD","FET","AGIX","OCEAN","RNDR","TAO","AKT","IO","ARKM","VIRTUAL","GRIFFAIN","KAITO"],
+  "🎮 Gaming": ["AXS","SAND","MANA","ENJ","IMX","GALA","GODS","ILV","YGG","BEAM","RON","PRIME"],
+  "⚡ DeFi": ["UNI","AAVE","CRV","MKR","SNX","COMP","1INCH","LDO","PENDLE","GMX","DYDX","JUP"],
+  "🐸 Meme": ["PEPE","SHIB","BONK","WIF","FLOKI","BOME","MEW","POPCAT","NEIRO","GOAT","ACT","PNUT"],
+  "🔗 Layer1": ["SUI","APT","SEI","INJ","TIA","NEAR","FTM","ALGO","ONE","HBAR","EGLD","KAVA"],
+  "🌐 Layer2": ["ARB","OP","STRK","MANTA","SCROLL","ZKSYNC","METIS","BOBA","ZKFAIR","BLAST","MODE","TAIKO"],
+  "💎 Alt": ["LINK","HYPE","PYTH","JTO","ONDO","ENA","ETHFI","EIGEN","REZ","LISTA","ZRO","OMNI"],
+  "🪙 Pionex": ["SAHARA","TURBO","MOODENG","HMSTR","CATI","DOGS","MOVE","ME","USUAL","THE","COOKIE","ANIME"]
+};
+
+const STEPS = ["Analizez volatilitatea...","Verifică lichiditatea...","Calculez parametrii grid...","Evaluez trendul...","Generez recomandarea..."];
+
+const SYSTEM = `Ești un expert în trading crypto, specializat în futures grid bots pe Pionex și Binance.
+Analizează coinul dat și returnează DOAR un obiect JSON valid, fără markdown, fără explicații, fără backticks.
+
+Structura exactă JSON:
+{
+  "symbol": "SOLUSDT",
+  "price_approx": "~145 USD",
+  "verdict": "EXCELENT",
+  "verdict_ro": "Excelent pentru Grid",
+  "scor_total": 82,
+  "emoji": "🚀",
+  "metrics": {
+    "volatilitate_zilnica": { "valoare": "4.2%", "scor": 3, "max": 3, "nota": "ATR% estimat pe 30 zile" },
+    "range_7zile": { "valoare": "18%", "scor": 2, "max": 3, "nota": "High-low săptămânal tipic" },
+    "range_30zile": { "valoare": "55%", "scor": 3, "max": 3, "nota": "Spațiu de operare lunar" },
+    "volum_24h": { "valoare": "1.2B USDT", "scor": 3, "max": 3, "nota": "Lichiditate excelentă" },
+    "trend_comportament": { "valoare": "LATERAL", "scor": 3, "max": 3, "nota": "Ideal pentru grid" },
+    "open_interest": { "valoare": "~450M USDT", "scor": 3, "max": 3, "nota": "Piață futures activă" },
+    "bollinger_width": { "valoare": "14%", "scor": 2, "max": 3, "nota": "Volatilitate moderată" }
+  },
+  "recomandare_grid": {
+    "range_pct": "±12%",
+    "nr_griduri": "25",
+    "leverage": "3x",
+    "capital_minim": "200 USDT",
+    "tip_grid": "Arithmetic",
+    "observatie": "Observatie scurta specifica coinului in romana, max 1 propozitie."
+  },
+  "riscuri": ["Risc specific 1", "Risc specific 2"],
+  "puncte_forte": ["Avantaj specific 1", "Avantaj specific 2"]
+}
+Verdict: EXCELENT(75-100,🚀) BUN(55-74,✅) ACCEPTABIL(35-54,⚠️) EVITA(0-34,❌)
+Raspunde STRICT doar cu JSON.`;
+
+// Build category tabs + pills
+let activeCategory = Object.keys(CATEGORIES)[0];
+const pillsEl = document.getElementById('pills');
+const tabsEl = document.getElementById('cat-tabs');
+
+function buildPills(cat) {
+  pillsEl.innerHTML = '';
+  CATEGORIES[cat].forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'pill';
+    b.textContent = c;
+    b.onclick = () => {
+      document.getElementById('sym-input').value = c + 'USDT';
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      b.classList.add('active');
+    };
+    pillsEl.appendChild(b);
+  });
+}
+
+Object.keys(CATEGORIES).forEach(cat => {
+  const t = document.createElement('button');
+  t.className = 'pill' + (cat === activeCategory ? ' active' : '');
+  t.textContent = cat;
+  t.style.whiteSpace = 'nowrap';
+  t.onclick = () => {
+    activeCategory = cat;
+    document.querySelectorAll('#cat-tabs .pill').forEach(p => p.classList.remove('active'));
+    t.classList.add('active');
+    buildPills(cat);
+  };
+  tabsEl.appendChild(t);
+});
+
+buildPills(activeCategory);
+
+const vc = v => ({EXCELENT:'#00ff88',BUN:'#7fff44',ACCEPTABIL:'#ffcc00',EVITA:'#ff4455'}[v]||'#888');
+const vbg = v => ({EXCELENT:'rgba(0,255,136,0.06)',BUN:'rgba(127,255,68,0.06)',ACCEPTABIL:'rgba(255,204,0,0.06)',EVITA:'rgba(255,68,85,0.06)'}[v]||'rgba(255,255,255,0.02)');
+const dc = (s,m) => { const r=s/m; return r>0.99?'filled-high':r>0.6?'filled-mid':r>0.3?'filled-low':'filled-bad'; };
+const metricLabel = k => k.replace(/_/g,' ');
+
+// All coins flat list for autocomplete
+const ALL_COINS = Object.values(CATEGORIES).flat();
+let suggIdx = -1;
+
+function showSugg(val) {
+  const box = document.getElementById('sugg-box');
+  const q = val.replace(/USDT$/i,'').toUpperCase().trim();
+  if (!q) { box.style.display='none'; return; }
+  const matches = ALL_COINS.filter(c => c.startsWith(q)).slice(0,8);
+  if (!matches.length) { box.style.display='none'; return; }
+  suggIdx = -1;
+  box.innerHTML = matches.map((c,i) => `
+    <div class="sugg-item" data-coin="${c}" onmousedown="pickSugg('${c}')"
+      style="padding:11px 16px;font-family:'Fira Code',monospace;font-size:14px;color:#aaa;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center">
+      <span>${c}<span style="color:#334;font-size:11px">USDT</span></span>
+      <span style="font-size:10px;color:#2a3a4a">FUTURES</span>
+    </div>`).join('');
+  box.style.display = 'block';
+}
+
+function pickSugg(coin) {
+  document.getElementById('sym-input').value = coin + 'USDT';
+  document.getElementById('sugg-box').style.display = 'none';
+  // highlight matching pill
+  document.querySelectorAll('.pill').forEach(p => {
+    if(p.textContent === coin) p.classList.add('active');
+    else p.classList.remove('active');
+  });
+  analyze();
+}
+
+function inputKey(e) {
+  const box = document.getElementById('sugg-box');
+  const items = box.querySelectorAll('.sugg-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    suggIdx = Math.min(suggIdx+1, items.length-1);
+    items.forEach((el,i) => el.style.background = i===suggIdx ? 'rgba(0,221,255,0.08)' : '');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    suggIdx = Math.max(suggIdx-1, -1);
+    items.forEach((el,i) => el.style.background = i===suggIdx ? 'rgba(0,221,255,0.08)' : '');
+  } else if (e.key === 'Enter') {
+    if (suggIdx >= 0 && items[suggIdx]) {
+      pickSugg(items[suggIdx].dataset.coin);
+    } else {
+      box.style.display = 'none';
+      analyze();
+    }
+  } else if (e.key === 'Escape') {
+    box.style.display = 'none';
+  }
+}
+
+// Close suggestions on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('#sugg-box') && e.target.id !== 'sym-input')
+    document.getElementById('sugg-box').style.display = 'none';
+});
+
+let stepIdx = 0, stepInterval = null;
+
+function setLoadingMsg(msg){ document.getElementById('loading-msg').textContent = msg; }
+
+async function analyze() {
+  const sym = document.getElementById('sym-input').value.trim().toUpperCase();
+  if (!sym) return;
+
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('hint').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('scan-btn').disabled = true;
+  document.getElementById('scan-btn').textContent = '...';
+
+  stepIdx = 0;
+  setLoadingMsg(STEPS[0]);
+  stepInterval = setInterval(() => { stepIdx=(stepIdx+1)%STEPS.length; setLoadingMsg(STEPS[stepIdx]); }, 1600);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: [{ role: 'user', content: `Analizează pentru futures grid bot: ${sym}` }]
+      })
+    });
+    const raw = await res.json();
+    const text = (raw.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
+    const d = JSON.parse(text);
+    renderResults(d);
+  } catch(e) {
+    document.getElementById('error-box').textContent = '⚠ Eroare la analiză. Verifică simbolul (ex: SOLUSDT) și încearcă din nou.';
+    document.getElementById('error-box').style.display = 'block';
+  } finally {
+    clearInterval(stepInterval);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('scan-btn').disabled = false;
+    document.getElementById('scan-btn').textContent = 'SCANEAZĂ';
+  }
+}
+
+function renderResults(d) {
+  const color = vc(d.verdict);
+  const bg = vbg(d.verdict);
+
+  // Build dots html
+  function dots(scor, max) {
+    let h = '<div style="display:flex;gap:5px">';
+    for(let i=0;i<max;i++) h += `<div class="dot${i<scor?' '+dc(scor,max):''}"></div>`;
+    h += '</div>';
+    return h;
+  }
+
+  // Metrics rows
+  let metricsHtml = '';
+  for(const [key, m] of Object.entries(d.metrics)) {
+    metricsHtml += `
+    <div class="metric-row">
+      <div style="flex:1">
+        <div style="font-size:10px;color:#3a4a4a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;font-family:'Fira Code',monospace">${metricLabel(key)}</div>
+        <div style="font-size:16px;font-weight:700;color:#ccc;font-family:'Fira Code',monospace">${m.valoare}</div>
+        <div style="font-size:11px;color:#2a3a2a;margin-top:1px">${m.nota}</div>
+      </div>
+      ${dots(m.scor, m.max)}
+    </div>`;
+  }
+
+  // Grid params
+  const gp = d.recomandare_grid;
+  const params = [['Range', gp.range_pct],['Nr. Griduri', gp.nr_griduri],['Leverage', gp.leverage],['Capital Min.', gp.capital_minim],['Tip Grid', gp.tip_grid]];
+  let paramsHtml = '<div class="grid-params">';
+  params.forEach(([l,v]) => {
+    paramsHtml += `<div class="param-box"><div style="font-size:10px;color:#334;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:17px;font-weight:700;color:#00ddff;font-family:'Fira Code',monospace">${v}</div></div>`;
+  });
+  paramsHtml += '</div>';
+  if(gp.observatie) paramsHtml += `<div style="margin-top:10px;padding:10px 14px;background:rgba(0,221,255,0.03);border-radius:10px;border:1px solid rgba(0,221,255,0.08);font-size:12px;color:#5a7a88;line-height:1.6">💡 ${gp.observatie}</div>`;
+
+  // Pro/con
+  const pfHtml = (d.puncte_forte||[]).map(p=>`<div style="font-size:12px;color:#445;margin-bottom:7px;line-height:1.5;display:flex;gap:6px"><span style="color:#00ff8855;flex-shrink:0">▸</span>${p}</div>`).join('');
+  const rHtml = (d.riscuri||[]).map(r=>`<div style="font-size:12px;color:#445;margin-bottom:7px;line-height:1.5;display:flex;gap:6px"><span style="color:#ff445555;flex-shrink:0">▸</span>${r}</div>`).join('');
+
+  const html = `
+  <div class="fadein">
+    <!-- Verdict -->
+    <div style="background:${bg};border:1px solid ${color}20;border-radius:16px;padding:22px 20px;margin-bottom:10px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,${color}18,transparent 70%);border-radius:50%"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div>
+          <div style="font-size:10px;color:#445;letter-spacing:2px;font-family:'Fira Code',monospace;margin-bottom:6px">${d.symbol} · ${d.price_approx}</div>
+          <div style="font-size:21px;font-weight:800;color:${color}">${d.emoji} ${d.verdict_ro}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:34px;font-weight:800;color:${color};font-family:'Fira Code',monospace;line-height:1">${d.scor_total}</div>
+          <div style="font-size:11px;color:#334">/ 100</div>
+        </div>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${d.scor_total}%;background:linear-gradient(90deg,${color}66,${color});border-radius:2px;box-shadow:0 0 8px ${color}66"></div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="card" style="padding:4px 18px;margin-bottom:10px">
+      ${metricsHtml}
+    </div>
+
+    <!-- Grid params -->
+    <div class="card" style="padding:16px 18px;margin-bottom:10px">
+      <div style="font-size:10px;color:#334;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-family:'Fira Code',monospace">⚙ Parametri Grid</div>
+      ${paramsHtml}
+    </div>
+
+    <!-- Pro/Con -->
+    <div class="pro-con-row">
+      <div class="pro-con-box">
+        <div style="font-size:10px;color:#00ff88;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:'Fira Code',monospace">✓ Avantaje</div>
+        ${pfHtml}
+      </div>
+      <div class="pro-con-box">
+        <div style="font-size:10px;color:#ff5566;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:'Fira Code',monospace">✗ Riscuri</div>
+        ${rHtml}
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:11px;color:#1a2a1a;font-family:'Fira Code',monospace;margin-top:8px">
+      Analiză AI · Nu este sfat financiar · DYOR
+    </div>
+  </div>`;
+
+  const el = document.getElementById('results');
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
