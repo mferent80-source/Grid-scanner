@@ -2,389 +2,752 @@
 <html lang="ro">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Grid Scanner"/>
 <meta name="theme-color" content="#070b0e"/>
-<title>Futures Grid Scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet"/>
+<title>Grid Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet"/>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#070b0e;font-family:'Syne',sans-serif;color:#fff;min-height:100vh;padding:env(safe-area-inset-top, 28px) 16px 60px;padding-top:max(28px, env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center}
-  input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;color:#fff;font-size:14px;font-family:'Fira Code',monospace;letter-spacing:1.5px;transition:all 0.2s;-webkit-appearance:none}
-  input:focus{outline:none;border-color:#00ddff;box-shadow:0 0 0 2px rgba(0,221,255,0.12)}
-  button{cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.2s}
-  button:active{transform:scale(0.97)}
-  .pill{padding:5px 13px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;color:#445;font-size:11px;font-family:'Fira Code',monospace}
-  .pill.active{background:rgba(0,221,255,0.1);border-color:rgba(0,221,255,0.3);color:#00ddff}
-  .pill:hover{border-color:#00ddff55;color:#00ddff88}
-  .card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px}
-  .metric-row{padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:10px}
-  .metric-row:last-child{border-bottom:none}
-  .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.07)}
-  .dot.filled-high{background:#00ff88;box-shadow:0 0 5px #00ff88}
-  .dot.filled-mid{background:#7fff44;box-shadow:0 0 5px #7fff44}
-  .dot.filled-low{background:#ffcc00;box-shadow:0 0 5px #ffcc00}
-  .dot.filled-bad{background:#ff4455;box-shadow:0 0 5px #ff4455}
-  .param-box{background:rgba(0,221,255,0.04);border:1px solid rgba(0,221,255,0.08);border-radius:10px;padding:10px 14px}
-  .pro-con-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px;flex:1}
-  @keyframes fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-  @keyframes barMove{0%{width:15%}50%{width:80%}100%{width:15%}}
-  .fadein{animation:fadein 0.55s ease both}
-  .blink{animation:blink 1.4s ease infinite}
-  .loading-bar-inner{animation:barMove 2s ease infinite}
-  #results{display:none}
-  #loading{display:none;text-align:center;margin-bottom:24px}
-  #error-box{display:none;width:100%;max-width:480px;padding:13px 18px;background:rgba(255,68,85,0.07);border:1px solid rgba(255,68,85,0.2);border-radius:12px;color:#ff7788;font-size:13px;font-family:'Fira Code',monospace;margin-bottom:14px}
-  #hint{color:#1a2a2a;font-size:12px;font-family:'Fira Code',monospace;margin-top:10px;text-align:center}
-  .grid-params{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .pro-con-row{display:flex;gap:10px;margin-bottom:10px}
-  #cat-tabs{scrollbar-width:none}
-  #cat-tabs::-webkit-scrollbar{display:none}
-  @media(max-width:360px){.grid-params{grid-template-columns:1fr}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#070b0e;color:#fff;font-family:'Syne',sans-serif;padding:20px 14px 60px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.mono{font-family:'Fira Code',monospace}
+input{width:100%;padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#fff;font-size:14px;font-family:'Fira Code',monospace;outline:none}
+input:focus{border-color:#00ddff;box-shadow:0 0 0 2px rgba(0,221,255,.12)}
+button{cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;border:none}
+button:active{transform:scale(.97)}
+.sbtn{padding:12px 18px;background:#00ddff;border-radius:12px;color:#04090c;font-weight:800;font-size:13px}
+.sbtn:hover{filter:brightness(1.15)}
+.sbtn:disabled{opacity:.5;cursor:not-allowed}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px;margin-bottom:10px}
+.err{background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.25);border-radius:12px;padding:12px 16px;color:#ff7788;font-size:13px;margin-bottom:12px;font-family:'Fira Code',monospace}
+.pill{padding:4px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;color:#445;font-size:11px;font-family:'Fira Code',monospace}
+.pill.on{background:rgba(0,221,255,.1);border-color:rgba(0,221,255,.35);color:#00ddff}
+.tab{flex:1;padding:10px 6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;color:#445;font-weight:700;font-size:12px}
+.tab.on{background:rgba(0,221,255,.12);border-color:rgba(0,221,255,.4);color:#00ddff}
+.lbtn{padding:8px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#445;font-weight:700;font-size:13px;font-family:'Fira Code',monospace}
+.lbtn.on{background:rgba(0,221,255,.15);border-color:#00ddff;color:#00ddff}
+.pbtn{flex:1;padding:10px 6px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;text-align:center}
+.pbtn.on{border-width:2px}
+.row{display:grid;grid-template-columns:28px 1fr 46px 65px;gap:6px;padding:10px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:12px;margin-bottom:6px;cursor:pointer}
+.row:hover{background:rgba(255,255,255,.04)}
+.hid{display:none!important}
+.fi{animation:fi .4s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes bm{0%{width:15%}50%{width:80%}100%{width:15%}}
+.bl{animation:bl 1.4s ease infinite}
+.bm{animation:bm 2s ease infinite}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+input[type=range]{-webkit-appearance:none;height:4px;background:rgba(255,255,255,.1);border-radius:2px;cursor:pointer;width:100%;border:none;padding:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:#00ddff;border-radius:50%}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:#1a2a2a;border-radius:2px}
+.sugg{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0d1317;border:1px solid rgba(0,221,255,.2);border-radius:12px;overflow:hidden;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.8)}
+.si{padding:10px 16px;font-family:'Fira Code',monospace;font-size:14px;color:#aaa;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.si:hover,.si.hi{background:rgba(0,221,255,.08);color:#00ddff}
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div style="text-align:center;margin-bottom:34px;max-width:480px;width:100%">
-  <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 16px;border:1px solid rgba(0,221,255,0.2);border-radius:20px;margin-bottom:16px">
-    <div class="blink" style="width:6px;height:6px;border-radius:50%;background:#00ff88"></div>
-    <span style="font-size:10px;letter-spacing:3px;color:#00ddff;text-transform:uppercase;font-family:'Fira Code',monospace">Powered by Claude AI</span>
+<div style="text-align:center;margin-bottom:18px;max-width:480px;width:100%">
+  <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 14px;border:1px solid rgba(0,221,255,.2);border-radius:20px;margin-bottom:10px">
+    <div class="bl" style="width:6px;height:6px;border-radius:50%;background:#00ff88"></div>
+    <span class="mono" style="font-size:10px;letter-spacing:3px;color:#00ddff;text-transform:uppercase">Claude AI · Grid Scanner</span>
   </div>
-  <h1 style="font-size:30px;font-weight:800;line-height:1.15">
-    FUTURES GRID<br>
-    <span style="color:#00ddff;font-family:'Fira Code',monospace">SCANNER</span>
-  </h1>
-  <p style="color:#334;font-size:12px;margin-top:10px">Introdu orice simbol · Claude analizează volatilitatea, lichiditatea și trendul</p>
+  <h1 style="font-size:22px;font-weight:800">FUTURES GRID <span class="mono" style="color:#00ddff">SCANNER</span></h1>
 </div>
 
-<!-- Input -->
-<div style="width:100%;max-width:480px;margin-bottom:14px">
-  <div style="display:flex;gap:8px">
+<div id="tabs" style="display:flex;gap:6px;max-width:480px;width:100%;margin-bottom:16px">
+  <button class="tab on" onclick="goTab('scan')">🔍 Scan</button>
+  <button class="tab" onclick="goTab('calc')">⚙️ Calculator</button>
+  <button class="tab" onclick="goTab('top10')">🏆 Top 10</button>
+</div>
+
+<!-- SCAN -->
+<div id="pg-scan" style="width:100%;max-width:480px">
+  <div style="display:flex;gap:8px;margin-bottom:12px">
     <div style="position:relative;flex:1">
-      <input id="sym-input" value="" placeholder="Cauta coin... SOL, BTC, PEPE..." autocomplete="off"
-        oninput="showSugg(this.value)" onkeydown="inputKey(event)" onfocus="showSugg(this.value)"
-        style="width:100%"/>
-      <div id="sugg-box" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0d1317;border:1px solid rgba(0,221,255,0.18);border-radius:12px;overflow:hidden;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,0.6)"></div>
+      <input id="s-inp" placeholder="Caută: SOL, ETH, PEPE..." oninput="sInp(this.value)" onkeydown="sKey(event)" onfocus="sInp(this.value)" onblur="setTimeout(()=>hSugg('s'),150)"/>
+      <div id="s-sugg" class="sugg hid"></div>
     </div>
-    <button onclick="analyze()" id="scan-btn" style="padding:13px 22px;background:#00ddff;border:none;border-radius:12px;color:#04090c;font-weight:800;font-size:13px;letter-spacing:0.5px;white-space:nowrap">SCANEAZĂ</button>
+    <button id="s-btn" class="sbtn" onclick="doScan()">SCAN</button>
   </div>
+  <div id="s-cats" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;padding-bottom:2px"></div>
+  <div id="s-pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;justify-content:center;max-height:110px;overflow-y:auto"></div>
+  <div id="s-load" class="hid" style="text-align:center;padding:14px 0">
+    <div style="width:200px;height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin:0 auto 10px;overflow:hidden"><div class="bm" style="height:100%;background:linear-gradient(90deg,#00ddff,#00ff88);border-radius:2px"></div></div>
+    <div id="s-step" class="mono" style="color:#00ddff;font-size:11px;letter-spacing:1px">Se analizează...</div>
+  </div>
+  <div id="s-err" class="err hid"></div>
+  <div id="s-out" class="hid fi"></div>
+  <div id="s-hint" class="mono" style="color:#1a2a2a;font-size:12px;text-align:center;margin-top:8px">selectează un coin sau caută</div>
 </div>
 
-<!-- Category tabs -->
-<div id="cat-tabs" style="display:flex;gap:6px;margin-bottom:10px;max-width:480px;width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none"></div>
-<!-- Quick coins -->
-<div id="pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;justify-content:center;max-width:480px;max-height:160px;overflow-y:auto;padding:4px 2px;scrollbar-width:thin;scrollbar-color:#1a2a2a transparent"></div>
-
-<!-- Loading -->
-<div id="loading">
-  <div style="width:240px;height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin:0 auto 12px;overflow:hidden">
-    <div class="loading-bar-inner" style="height:100%;background:linear-gradient(90deg,#00ddff,#00ff88);border-radius:2px"></div>
+<!-- CALC -->
+<div id="pg-calc" class="hid" style="width:100%;max-width:480px">
+  <div style="font-size:11px;color:#445;text-align:center;margin-bottom:12px" class="mono">Obții date o dată → schimbi preț/leverage/capital → instant</div>
+  <div style="position:relative;margin-bottom:10px">
+    <input id="c-inp" placeholder="Coin: SOL, ETH..." oninput="cInp(this.value)" onkeydown="cKey(event)" onfocus="cInp(this.value)" onblur="setTimeout(()=>hSugg('c'),150)"/>
+    <div id="c-sugg" class="sugg hid"></div>
   </div>
-  <div id="loading-msg" style="color:#00ddff;font-size:11px;font-family:'Fira Code',monospace;letter-spacing:1px"></div>
+  <div class="card" style="background:rgba(0,221,255,.06);border-color:rgba(0,221,255,.2)">
+    <div class="mono" style="font-size:10px;color:#00ddff;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">💰 Preț Curent (din Pionex)</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="position:relative;flex:1">
+        <span class="mono" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#00ddff;font-weight:700;font-size:16px">$</span>
+        <input id="c-price" type="number" placeholder="ex: 145.32" oninput="reCalc()" style="padding:11px 12px 11px 28px;background:rgba(0,221,255,.08);border-color:rgba(0,221,255,.25);font-size:18px;font-weight:700"/>
+      </div>
+      <div id="c-pstat" class="mono" style="font-size:11px;color:#334;text-align:center;min-width:50px">Fără<br>preț</div>
+    </div>
+    <div id="c-pest" class="mono hid" style="font-size:11px;color:#445;margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="mono" style="font-size:10px;color:#445;letter-spacing:2px;text-transform:uppercase">Leverage</span>
+      <span id="c-levlbl" class="mono" style="font-size:22px;font-weight:800;color:#00ddff">3x</span>
+    </div>
+    <div id="c-levs" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div id="c-levwarn" class="hid" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="mono" style="font-size:10px;color:#445;letter-spacing:2px;text-transform:uppercase">Capital</span>
+      <span id="c-caplbl" class="mono" style="font-size:20px;font-weight:800;color:#7fff44">500 USDT</span>
+    </div>
+    <input type="range" id="c-caprange" min="50" max="10000" step="50" value="500" oninput="setCap(+this.value)"/>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#334;margin-top:4px" class="mono"><span>50$</span><span>10k$</span></div>
+    <div id="c-capbtns" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+  </div>
+  <button id="c-btn" class="sbtn" onclick="doCalc()" style="width:100%;padding:14px;font-size:14px;margin-bottom:14px;background:rgba(255,255,255,.05);color:#334" disabled>⚡ OBȚINE DATE COIN</button>
+  <div id="c-load" class="hid" style="text-align:center;padding:14px 0">
+    <div style="width:200px;height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin:0 auto 10px;overflow:hidden"><div class="bm" style="height:100%;background:linear-gradient(90deg,#ffaa00,#00ff88);border-radius:2px"></div></div>
+    <div id="c-step" class="mono" style="color:#ffaa00;font-size:11px;letter-spacing:1px">Se calculează...</div>
+  </div>
+  <div id="c-err" class="err hid"></div>
+  <div id="c-out" class="hid fi"></div>
 </div>
 
-<!-- Error -->
-<div id="error-box"></div>
-
-<!-- Hint -->
-<div id="hint">selectează un coin sau introdu simbolul și apasă SCANEAZĂ</div>
-
-<!-- Results -->
-<div id="results" style="width:100%;max-width:480px"></div>
+<!-- TOP10 -->
+<div id="pg-top10" class="hid" style="width:100%;max-width:480px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="mono" style="font-size:11px;color:#445">Scoruri JS · Consistente</div>
+    <button id="t-btn" onclick="doTop10()" style="padding:8px 14px;background:rgba(0,221,255,.1);border:1px solid rgba(0,221,255,.3);border-radius:10px;color:#00ddff;font-weight:700;font-size:12px">🔍 Generează</button>
+  </div>
+  <div id="t-load" class="hid" style="text-align:center;padding:30px 0">
+    <div style="width:220px;height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin:0 auto 12px;overflow:hidden"><div class="bm" style="height:100%;background:linear-gradient(90deg,#00ddff,#00ff88);border-radius:2px"></div></div>
+    <div id="t-step" class="mono" style="color:#00ddff;font-size:11px;letter-spacing:1px">Se generează...</div>
+  </div>
+  <div id="t-err" class="err hid"></div>
+  <div id="t-out" class="hid fi"></div>
+  <div id="t-hint" class="mono" style="text-align:center;padding:40px 0;color:#1a2a2a;font-size:13px">Apasă <b style="color:#334">Generează</b></div>
+</div>
 
 <script>
-const CATEGORIES = {
-  "🔥 Top": ["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","AVAX","DOT","MATIC","LTC","ATOM"],
-  "🤖 AI": ["WLD","FET","AGIX","OCEAN","RNDR","TAO","AKT","IO","ARKM","VIRTUAL","GRIFFAIN","KAITO"],
-  "🎮 Gaming": ["AXS","SAND","MANA","ENJ","IMX","GALA","GODS","ILV","YGG","BEAM","RON","PRIME"],
-  "⚡ DeFi": ["UNI","AAVE","CRV","MKR","SNX","COMP","1INCH","LDO","PENDLE","GMX","DYDX","JUP"],
-  "🐸 Meme": ["PEPE","SHIB","BONK","WIF","FLOKI","BOME","MEW","POPCAT","NEIRO","GOAT","ACT","PNUT"],
-  "🔗 Layer1": ["SUI","APT","SEI","INJ","TIA","NEAR","FTM","ALGO","ONE","HBAR","EGLD","KAVA"],
-  "🌐 Layer2": ["ARB","OP","STRK","MANTA","SCROLL","ZKSYNC","METIS","BOBA","ZKFAIR","BLAST","MODE","TAIKO"],
-  "💎 Alt": ["LINK","HYPE","PYTH","JTO","ONDO","ENA","ETHFI","EIGEN","REZ","LISTA","ZRO","OMNI"],
-  "🪙 Pionex": ["SAHARA","TURBO","MOODENG","HMSTR","CATI","DOGS","MOVE","ME","USUAL","THE","COOKIE","ANIME"]
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+var CATS = {
+  "🔥 Top":["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","AVAX","DOT","MATIC","LTC","ATOM"],
+  "🤖 AI":["WLD","FET","AGIX","OCEAN","RNDR","TAO","AKT","IO","ARKM","VIRTUAL","GRIFFAIN","KAITO"],
+  "🎮 Gaming":["AXS","SAND","MANA","ENJ","IMX","GALA","ILV","YGG","BEAM","RON","PRIME","GODS"],
+  "⚡ DeFi":["UNI","AAVE","CRV","MKR","SNX","LDO","PENDLE","GMX","DYDX","JUP","1INCH","COMP"],
+  "🐸 Meme":["PEPE","SHIB","BONK","WIF","FLOKI","BOME","MEW","POPCAT","NEIRO","GOAT","ACT","PNUT"],
+  "🔗 Layer1":["SUI","APT","SEI","INJ","TIA","NEAR","FTM","ALGO","HBAR","EGLD","KAVA","ONE"],
+  "🌐 Layer2":["ARB","OP","STRK","MANTA","METIS","BLAST","MODE","TAIKO","SCROLL","BOBA","ZKSYNC","ZKFAIR"],
+  "💎 Alt":["LINK","HYPE","PYTH","JTO","ONDO","ENA","ETHFI","EIGEN","LISTA","ZRO","OMNI","REZ"],
+  "🪙 Pionex":["SAHARA","TURBO","MOODENG","HMSTR","CATI","DOGS","MOVE","ME","USUAL","GNU","BERA","IP","TST","ANIME"]
+};
+var ALL = [];
+Object.values(CATS).forEach(function(a){ALL=ALL.concat(a);});
+var LEVS = [1,2,3,5,7,10,15,20];
+var CAPS = [100,250,500,1000,2500,5000];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var ST = {
+  tab:"scan", cat:"🔥 Top",
+  sSuggs:[], sIdx:-1,
+  cSuggs:[], cIdx:-1,
+  lev:3, cap:500,
+  sRaw:null, cRaw:null,
+  t10:null, expRow:-1,
+  prof:"Echilibrat",
+  iv:null
 };
 
-const STEPS = ["Analizez volatilitatea...","Verifică lichiditatea...","Calculez parametrii grid...","Evaluez trendul...","Generez recomandarea..."];
-
-const SYSTEM = `Ești un expert în trading crypto, specializat în futures grid bots pe Pionex și Binance.
-Analizează coinul dat și returnează DOAR un obiect JSON valid, fără markdown, fără explicații, fără backticks.
-
-Structura exactă JSON:
-{
-  "symbol": "SOLUSDT",
-  "price_approx": "~145 USD",
-  "verdict": "EXCELENT",
-  "verdict_ro": "Excelent pentru Grid",
-  "scor_total": 82,
-  "emoji": "🚀",
-  "metrics": {
-    "volatilitate_zilnica": { "valoare": "4.2%", "scor": 3, "max": 3, "nota": "ATR% estimat pe 30 zile" },
-    "range_7zile": { "valoare": "18%", "scor": 2, "max": 3, "nota": "High-low săptămânal tipic" },
-    "range_30zile": { "valoare": "55%", "scor": 3, "max": 3, "nota": "Spațiu de operare lunar" },
-    "volum_24h": { "valoare": "1.2B USDT", "scor": 3, "max": 3, "nota": "Lichiditate excelentă" },
-    "trend_comportament": { "valoare": "LATERAL", "scor": 3, "max": 3, "nota": "Ideal pentru grid" },
-    "open_interest": { "valoare": "~450M USDT", "scor": 3, "max": 3, "nota": "Piață futures activă" },
-    "bollinger_width": { "valoare": "14%", "scor": 2, "max": 3, "nota": "Volatilitate moderată" }
-  },
-  "recomandare_grid": {
-    "range_pct": "±12%",
-    "nr_griduri": "25",
-    "leverage": "3x",
-    "capital_minim": "200 USDT",
-    "tip_grid": "Arithmetic",
-    "observatie": "Observatie scurta specifica coinului in romana, max 1 propozitie."
-  },
-  "riscuri": ["Risc specific 1", "Risc specific 2"],
-  "puncte_forte": ["Avantaj specific 1", "Avantaj specific 2"]
-}
-Verdict: EXCELENT(75-100,🚀) BUN(55-74,✅) ACCEPTABIL(35-54,⚠️) EVITA(0-34,❌)
-Raspunde STRICT doar cu JSON.`;
-
-// Build category tabs + pills
-let activeCategory = Object.keys(CATEGORIES)[0];
-const pillsEl = document.getElementById('pills');
-const tabsEl = document.getElementById('cat-tabs');
-
-function buildPills(cat) {
-  pillsEl.innerHTML = '';
-  CATEGORIES[cat].forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'pill';
-    b.textContent = c;
-    b.onclick = () => {
-      document.getElementById('sym-input').value = c + 'USDT';
-      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-      b.classList.add('active');
-    };
-    pillsEl.appendChild(b);
-  });
-}
-
-Object.keys(CATEGORIES).forEach(cat => {
-  const t = document.createElement('button');
-  t.className = 'pill' + (cat === activeCategory ? ' active' : '');
-  t.textContent = cat;
-  t.style.whiteSpace = 'nowrap';
-  t.onclick = () => {
-    activeCategory = cat;
-    document.querySelectorAll('#cat-tabs .pill').forEach(p => p.classList.remove('active'));
-    t.classList.add('active');
-    buildPills(cat);
+// ── SCORING ───────────────────────────────────────────────────────────────────
+function calcSc(r){
+  var atr=r.atr_pct||0,r7=r.range7d_pct||0,r30=r.range30d_pct||0;
+  var vol=r.volum_usd_M||0,oi=r.oi_usd_M||0,bb=r.bb_width_pct||0;
+  var t=(r.trend_type||"").toUpperCase();
+  var s={
+    atr:atr>=5?15:atr>=3?10:atr>=1.5?5:0,
+    r7:r7>=25?15:r7>=15?10:r7>=8?5:0,
+    r30:r30>=60?15:r30>=40?10:r30>=20?5:0,
+    vol:vol>=500?15:vol>=100?10:vol>=20?5:0,
+    trend:t.indexOf("LATERAL")>=0||t.indexOf("RANGING")>=0?15:t.indexOf("MODERAT")>=0?8:0,
+    oi:oi>=100?10:oi>=20?7:oi>=5?3:0,
+    bb:bb>=20?15:bb>=10?10:bb>=5?5:0
   };
-  tabsEl.appendChild(t);
-});
-
-buildPills(activeCategory);
-
-const vc = v => ({EXCELENT:'#00ff88',BUN:'#7fff44',ACCEPTABIL:'#ffcc00',EVITA:'#ff4455'}[v]||'#888');
-const vbg = v => ({EXCELENT:'rgba(0,255,136,0.06)',BUN:'rgba(127,255,68,0.06)',ACCEPTABIL:'rgba(255,204,0,0.06)',EVITA:'rgba(255,68,85,0.06)'}[v]||'rgba(255,255,255,0.02)');
-const dc = (s,m) => { const r=s/m; return r>0.99?'filled-high':r>0.6?'filled-mid':r>0.3?'filled-low':'filled-bad'; };
-const metricLabel = k => k.replace(/_/g,' ');
-
-// All coins flat list for autocomplete
-const ALL_COINS = Object.values(CATEGORIES).flat();
-let suggIdx = -1;
-
-function showSugg(val) {
-  const box = document.getElementById('sugg-box');
-  const q = val.replace(/USDT$/i,'').toUpperCase().trim();
-  if (!q) { box.style.display='none'; return; }
-  const matches = ALL_COINS.filter(c => c.startsWith(q)).slice(0,8);
-  if (!matches.length) { box.style.display='none'; return; }
-  suggIdx = -1;
-  box.innerHTML = matches.map((c,i) => `
-    <div class="sugg-item" data-coin="${c}" onmousedown="pickSugg('${c}')"
-      style="padding:11px 16px;font-family:'Fira Code',monospace;font-size:14px;color:#aaa;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center">
-      <span>${c}<span style="color:#334;font-size:11px">USDT</span></span>
-      <span style="font-size:10px;color:#2a3a4a">FUTURES</span>
-    </div>`).join('');
-  box.style.display = 'block';
+  var tot=0; Object.keys(s).forEach(function(k){tot+=s[k];});
+  var vd=tot>=75?"EXCELENT":tot>=55?"BUN":tot>=35?"ACCEPTABIL":"EVITA";
+  var EJ={EXCELENT:"🚀",BUN:"✅",ACCEPTABIL:"⚠️",EVITA:"❌"};
+  var VR={EXCELENT:"Excelent pentru Grid",BUN:"Bun pentru Grid",ACCEPTABIL:"Acceptabil cu Risc",EVITA:"Evită Grid-ul"};
+  return {s:s,tot:tot,vd:vd,ej:EJ[vd],vr:VR[vd]};
 }
 
-function pickSugg(coin) {
-  document.getElementById('sym-input').value = coin + 'USDT';
-  document.getElementById('sugg-box').style.display = 'none';
-  // highlight matching pill
-  document.querySelectorAll('.pill').forEach(p => {
-    if(p.textContent === coin) p.classList.add('active');
-    else p.classList.remove('active');
+// ── COLORS ────────────────────────────────────────────────────────────────────
+function vc(v){return{EXCELENT:"#00ff88",BUN:"#7fff44",ACCEPTABIL:"#ffcc00",EVITA:"#ff4455"}[v]||"#888";}
+function pc(p){return{Conservator:"#00ddff",Echilibrat:"#00ff88",Agresiv:"#ffaa00"}[p]||"#888";}
+function rc(r){return{Scăzut:"#00ff88",Mediu:"#ffcc00",Ridicat:"#ff4455"}[r]||"#888";}
+function dc(s,m){var r=s/m;return r>=1?"#00ff88":r>=0.6?"#7fff44":r>0?"#ffcc00":"#ff4455";}
+function drc(v){return{LONG:"#00ff88",SHORT:"#ff4455",NEUTRU:"#ffcc00"}[v]||"#888";}
+function drbg(v){return{LONG:"rgba(0,255,136,.07)",SHORT:"rgba(255,68,85,.07)",NEUTRU:"rgba(255,204,0,.07)"}[v]||"rgba(255,255,255,.02)";}
+function de(v){return{LONG:"📈",SHORT:"📉",NEUTRU:"↔️"}[v]||"❓";}
+function dl(v){return{LONG:"LONG — Cumpărare",SHORT:"SHORT — Vânzare",NEUTRU:"NEUTRU — Bilateral"}[v]||v;}
+
+function fp(p){
+  if(!p&&p!==0)return"N/A";
+  if(p>=1000)return"$"+p.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(p>=1)return"$"+p.toFixed(4);
+  if(p>=0.01)return"$"+p.toFixed(5);
+  return"$"+p.toFixed(8);
+}
+
+// ── GRID CALC ─────────────────────────────────────────────────────────────────
+function calcGrid(raw,lev,cap,price){
+  var atr30=(raw.range30d_pct||40)/100;
+  var LF={1:1.0,2:0.70,3:0.55,5:0.40,7:0.30,10:0.22,15:0.15,20:0.12};
+  var lf=LF[lev]||(1/lev*0.8);
+  var PROFS=[{n:"Conservator",rm:0.5,gm:0.7,tx:[2,4]},{n:"Echilibrat",rm:0.8,gm:1.0,tx:[4,8]},{n:"Agresiv",rm:1.2,gm:1.4,tx:[7,15]}];
+  return PROFS.map(function(p){
+    var rp=Math.round(atr30*lf*p.rm*1000)/10, rh=Math.round(rp/2*10)/10;
+    var g=Math.round(Math.sqrt(cap/10)*p.gm);
+    g=Math.max(5,Math.min(150,Math.round(g/5)*5));
+    var ppg=(rp*2)/g, tip=rp*2>30?"Geometric":"Arithmetic";
+    var cpg=+(cap/g).toFixed(2);
+    var txm=(p.tx[0]+p.tx[1])/2, pzp=ppg*txm/100;
+    var pzU=+(cap*pzp*lev).toFixed(2), apr=Math.round(pzp*lev*365*100);
+    var liqP=Math.round((100/lev)*0.8*10)/10;
+    var risc=lev<=2?"Scăzut":lev<=5?"Mediu":"Ridicat";
+    var dec=price&&price>=100?2:price&&price>=1?4:6;
+    var lo=price?+(price*(1-rh/100)).toFixed(dec):null;
+    var hi=price?+(price*(1+rh/100)).toFixed(dec):null;
+    var liqPr=price?+(price*(1-liqP/100)).toFixed(dec):null;
+    var step=(lo&&hi)?+((hi-lo)/g).toFixed(dec+2):null;
+    var pgU=price?+(cpg*ppg/100).toFixed(3):null;
+    return{profil:p.n,rh:rh,rp:rp,
+      lo_pct:"-"+rh+"%",hi_pct:"+"+rh+"%",total_pct:(rp*2)+"%",
+      lo_price:lo?fp(lo):null,hi_price:hi?fp(hi):null,
+      liq_price:liqPr?fp(liqPr):null,step:step?fp(step):null,
+      pgU:pgU?"$"+pgU:null,
+      grids:g,tip:tip,ppg_pct:ppg.toFixed(2)+"%",
+      cpg:"$"+cpg,apr:"~"+apr+"%",risc:risc,liqP:liqP,
+      tx_zi:p.tx[0]+"–"+p.tx[1],pz:"~$"+pzU};
   });
-  analyze();
 }
 
-function inputKey(e) {
-  const box = document.getElementById('sugg-box');
-  const items = box.querySelectorAll('.sugg-item');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    suggIdx = Math.min(suggIdx+1, items.length-1);
-    items.forEach((el,i) => el.style.background = i===suggIdx ? 'rgba(0,221,255,0.08)' : '');
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    suggIdx = Math.max(suggIdx-1, -1);
-    items.forEach((el,i) => el.style.background = i===suggIdx ? 'rgba(0,221,255,0.08)' : '');
-  } else if (e.key === 'Enter') {
-    if (suggIdx >= 0 && items[suggIdx]) {
-      pickSugg(items[suggIdx].dataset.coin);
-    } else {
-      box.style.display = 'none';
-      analyze();
+// ── API ───────────────────────────────────────────────────────────────────────
+var DPROMPT = function(sym){
+  return 'Expert crypto futures grid Pionex. Date brute pentru '+sym+'. DOAR JSON fara markdown:\n'+
+  '{"symbol":"'+sym+'","price_approx":"~145 USD","atr_pct":4.2,"range7d_pct":18.5,"range30d_pct":52.0,"volum_usd_M":1200,"trend_type":"LATERAL","oi_usd_M":450,"bb_width_pct":14.0,"rsi_14":52,"ema_trend":"BULLISH","funding_rate_pct":0.01,"long_short_ratio":1.2,"directie":{"optima":"LONG","sl":72,"ss":28,"sn":45,"motiv":"EMA bullish funding mic","sig_long":["EMA bullish","Volum ok"],"sig_short":["RSI ridicat"],"sig_neutru":["BB ingust"]},"riscuri":["Risc 1","Risc 2"],"puncte_forte":["Avantaj 1","Avantaj 2"],"obs":"Observatie scurta."}\n'+
+  'directie.optima: LONG/SHORT/NEUTRU. Numere reale nu string-uri. DOAR JSON.';
+};
+
+var T10PROMPT = 'Expert crypto futures Pionex. Returneaza top 10 coinuri pentru futures grid bot.\n'+
+'DOAR JSON fara markdown, campuri scurte:\n'+
+'{"c":['+
+'{"s":"SOLUSDT","a":5.2,"r7":20,"r30":55,"v":1200,"t":"LATERAL","o":450,"b":14,"m":"volatil lateral","d":"LONG","dl":70,"ds":28,"dn":45,"dm":"EMA bullish"},'+
+'{"s":"ETHUSDT","a":3.8,"r7":15,"r30":45,"v":800,"t":"LATERAL","o":2000,"b":12,"m":"lichiditate mare","d":"NEUTRU","dl":50,"ds":50,"dn":65,"dm":"piata neutra"}'+
+']}\n'+
+'Exact 10 obiecte in array "c". Campuri: s=symbol(XXXUSDT), a=atr%(num), r7=range7d%(num), r30=range30d%(num), v=volum_M(num), t=trend, o=oi_M(num), b=bb%(num), m=motiv(3cuvinte), d=LONG/SHORT/NEUTRU, dl/ds/dn=scoruri 0-100(num), dm=motiv_dir(3cuvinte). DOAR JSON.';
+
+async function callAPI(prompt, maxTok){
+  maxTok = maxTok||900;
+  var res = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model:"claude-sonnet-4-20250514",
+      max_tokens:maxTok,
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+  var j = await res.json();
+  var txt = (j.content && j.content[0] && j.content[0].text)||"";
+  txt = txt.replace(/```json/g,"").replace(/```/g,"").trim();
+  var si = txt.indexOf("{"), ei = txt.lastIndexOf("}");
+  if(si<0) throw new Error("Raspuns invalid de la API");
+  txt = txt.slice(si, ei+1);
+  // Try parse directly
+  try{ return JSON.parse(txt); }catch(e){}
+  // Fix truncated array: remove last incomplete element
+  try{
+    var fixed = txt.replace(/,\s*\{[^}]*$/, "]}");
+    // Also fix if array key is "c" or "coins"
+    fixed = fixed.replace(/,\s*\{[^}]*$/, "]}")
+                 .replace(/,\s*"[^"]*$/, "")
+                 .replace(/,\s*$/, "");
+    if(fixed.charAt(fixed.length-1)!=="}") fixed+="}";
+    return JSON.parse(fixed);
+  }catch(e2){}
+  throw new Error("JSON invalid - apasa din nou");
+}
+
+function normalize10(c){
+  return {
+    symbol: c.s||c.symbol||"???",
+    atr_pct: +(c.a||c.atr_pct||0),
+    range7d_pct: +(c.r7||c.range7d_pct||0),
+    range30d_pct: +(c.r30||c.range30d_pct||0),
+    volum_usd_M: +(c.v||c.volum_usd_M||0),
+    trend_type: c.t||c.trend_type||"LATERAL",
+    oi_usd_M: +(c.o||c.oi_usd_M||0),
+    bb_width_pct: +(c.b||c.bb_width_pct||0),
+    motiv: c.m||c.motiv||"",
+    directie: {
+      optima: c.d||(c.directie&&c.directie.optima)||"NEUTRU",
+      sl: +(c.dl||(c.directie&&c.directie.sl)||50),
+      ss: +(c.ds||(c.directie&&c.directie.ss)||50),
+      sn: +(c.dn||(c.directie&&c.directie.sn)||50),
+      motiv: c.dm||(c.directie&&c.directie.motiv)||""
     }
-  } else if (e.key === 'Escape') {
-    box.style.display = 'none';
-  }
+  };
 }
 
-// Close suggestions on outside click
-document.addEventListener('click', e => {
-  if (!e.target.closest('#sugg-box') && e.target.id !== 'sym-input')
-    document.getElementById('sugg-box').style.display = 'none';
-});
-
-let stepIdx = 0, stepInterval = null;
-
-function setLoadingMsg(msg){ document.getElementById('loading-msg').textContent = msg; }
-
-async function analyze() {
-  const sym = document.getElementById('sym-input').value.trim().toUpperCase();
-  if (!sym) return;
-
-  document.getElementById('results').style.display = 'none';
-  document.getElementById('results').innerHTML = '';
-  document.getElementById('error-box').style.display = 'none';
-  document.getElementById('hint').style.display = 'none';
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('scan-btn').disabled = true;
-  document.getElementById('scan-btn').textContent = '...';
-
-  stepIdx = 0;
-  setLoadingMsg(STEPS[0]);
-  stepInterval = setInterval(() => { stepIdx=(stepIdx+1)%STEPS.length; setLoadingMsg(STEPS[stepIdx]); }, 1600);
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: SYSTEM,
-        messages: [{ role: 'user', content: `Analizează pentru futures grid bot: ${sym}` }]
-      })
-    });
-    const raw = await res.json();
-    const text = (raw.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
-    const d = JSON.parse(text);
-    renderResults(d);
-  } catch(e) {
-    document.getElementById('error-box').textContent = '⚠ Eroare la analiză. Verifică simbolul (ex: SOLUSDT) și încearcă din nou.';
-    document.getElementById('error-box').style.display = 'block';
-  } finally {
-    clearInterval(stepInterval);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('scan-btn').disabled = false;
-    document.getElementById('scan-btn').textContent = 'SCANEAZĂ';
-  }
+// ── STEPS ─────────────────────────────────────────────────────────────────────
+function startStep(elId,steps,col){
+  var i=0; col=col||"#00ddff";
+  var el=document.getElementById(elId);
+  el.textContent=steps[0]; el.style.color=col;
+  clearInterval(ST.iv);
+  ST.iv=setInterval(function(){i=(i+1)%steps.length;el.textContent=steps[i];},1600);
 }
+function stopStep(){clearInterval(ST.iv);}
 
-function renderResults(d) {
-  const color = vc(d.verdict);
-  const bg = vbg(d.verdict);
-
-  // Build dots html
-  function dots(scor, max) {
-    let h = '<div style="display:flex;gap:5px">';
-    for(let i=0;i<max;i++) h += `<div class="dot${i<scor?' '+dc(scor,max):''}"></div>`;
-    h += '</div>';
-    return h;
-  }
-
-  // Metrics rows
-  let metricsHtml = '';
-  for(const [key, m] of Object.entries(d.metrics)) {
-    metricsHtml += `
-    <div class="metric-row">
-      <div style="flex:1">
-        <div style="font-size:10px;color:#3a4a4a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;font-family:'Fira Code',monospace">${metricLabel(key)}</div>
-        <div style="font-size:16px;font-weight:700;color:#ccc;font-family:'Fira Code',monospace">${m.valoare}</div>
-        <div style="font-size:11px;color:#2a3a2a;margin-top:1px">${m.nota}</div>
-      </div>
-      ${dots(m.scor, m.max)}
-    </div>`;
-  }
-
-  // Grid params
-  const gp = d.recomandare_grid;
-  const params = [['Range', gp.range_pct],['Nr. Griduri', gp.nr_griduri],['Leverage', gp.leverage],['Capital Min.', gp.capital_minim],['Tip Grid', gp.tip_grid]];
-  let paramsHtml = '<div class="grid-params">';
-  params.forEach(([l,v]) => {
-    paramsHtml += `<div class="param-box"><div style="font-size:10px;color:#334;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:17px;font-weight:700;color:#00ddff;font-family:'Fira Code',monospace">${v}</div></div>`;
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function goTab(t){
+  ST.tab=t;
+  ["scan","calc","top10"].forEach(function(id,i){
+    document.getElementById("pg-"+id).classList.toggle("hid",id!==t);
+    document.querySelectorAll(".tab")[i].classList.toggle("on",id===t);
   });
-  paramsHtml += '</div>';
-  if(gp.observatie) paramsHtml += `<div style="margin-top:10px;padding:10px 14px;background:rgba(0,221,255,0.03);border-radius:10px;border:1px solid rgba(0,221,255,0.08);font-size:12px;color:#5a7a88;line-height:1.6">💡 ${gp.observatie}</div>`;
-
-  // Pro/con
-  const pfHtml = (d.puncte_forte||[]).map(p=>`<div style="font-size:12px;color:#445;margin-bottom:7px;line-height:1.5;display:flex;gap:6px"><span style="color:#00ff8855;flex-shrink:0">▸</span>${p}</div>`).join('');
-  const rHtml = (d.riscuri||[]).map(r=>`<div style="font-size:12px;color:#445;margin-bottom:7px;line-height:1.5;display:flex;gap:6px"><span style="color:#ff445555;flex-shrink:0">▸</span>${r}</div>`).join('');
-
-  const html = `
-  <div class="fadein">
-    <!-- Verdict -->
-    <div style="background:${bg};border:1px solid ${color}20;border-radius:16px;padding:22px 20px;margin-bottom:10px;position:relative;overflow:hidden">
-      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,${color}18,transparent 70%);border-radius:50%"></div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-        <div>
-          <div style="font-size:10px;color:#445;letter-spacing:2px;font-family:'Fira Code',monospace;margin-bottom:6px">${d.symbol} · ${d.price_approx}</div>
-          <div style="font-size:21px;font-weight:800;color:${color}">${d.emoji} ${d.verdict_ro}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:34px;font-weight:800;color:${color};font-family:'Fira Code',monospace;line-height:1">${d.scor_total}</div>
-          <div style="font-size:11px;color:#334">/ 100</div>
-        </div>
-      </div>
-      <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
-        <div style="height:100%;width:${d.scor_total}%;background:linear-gradient(90deg,${color}66,${color});border-radius:2px;box-shadow:0 0 8px ${color}66"></div>
-      </div>
-    </div>
-
-    <!-- Metrics -->
-    <div class="card" style="padding:4px 18px;margin-bottom:10px">
-      ${metricsHtml}
-    </div>
-
-    <!-- Grid params -->
-    <div class="card" style="padding:16px 18px;margin-bottom:10px">
-      <div style="font-size:10px;color:#334;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-family:'Fira Code',monospace">⚙ Parametri Grid</div>
-      ${paramsHtml}
-    </div>
-
-    <!-- Pro/Con -->
-    <div class="pro-con-row">
-      <div class="pro-con-box">
-        <div style="font-size:10px;color:#00ff88;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:'Fira Code',monospace">✓ Avantaje</div>
-        ${pfHtml}
-      </div>
-      <div class="pro-con-box">
-        <div style="font-size:10px;color:#ff5566;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:'Fira Code',monospace">✗ Riscuri</div>
-        ${rHtml}
-      </div>
-    </div>
-
-    <div style="text-align:center;font-size:11px;color:#1a2a1a;font-family:'Fira Code',monospace;margin-top:8px">
-      Analiză AI · Nu este sfat financiar · DYOR
-    </div>
-  </div>`;
-
-  const el = document.getElementById('results');
-  el.innerHTML = html;
-  el.style.display = 'block';
+  if(t==="top10"&&!ST.t10) doTop10();
 }
+
+// ── SUGGESTIONS ───────────────────────────────────────────────────────────────
+function filterS(v){
+  var q=(v||"").replace(/USDT$/i,"").toUpperCase();
+  if(!q) return [];
+  return ALL.filter(function(c){return c.indexOf(q)===0;}).slice(0,8);
+}
+
+function sInp(v){
+  ST.sSuggs=filterS(v); ST.sIdx=-1;
+  rSugg("s",ST.sSuggs,ST.sIdx);
+}
+function cInp(v){
+  ST.cSuggs=filterS(v); ST.cIdx=-1;
+  rSugg("c",ST.cSuggs,ST.cIdx);
+  var btn=document.getElementById("c-btn");
+  if(v.trim()){btn.disabled=false;btn.style.background="#00ddff";btn.style.color="#04090c";}
+  else{btn.disabled=true;btn.style.background="rgba(255,255,255,.05)";btn.style.color="#334";}
+}
+
+function rSugg(id,list,idx){
+  var el=document.getElementById(id+"-sugg");
+  if(!list||!list.length){el.classList.add("hid");return;}
+  el.innerHTML=list.map(function(c,i){
+    return '<div class="si'+(i===idx?" hi":"")+'" onmousedown="pickS(\''+id+'\',\''+c+'\')">'
+      +c+'<span style="color:#2a3a4a;font-size:11px">USDT</span>'
+      +'<span style="font-size:10px;color:#223;float:right">FUTURES</span></div>';
+  }).join("");
+  el.classList.remove("hid");
+}
+function hSugg(id){document.getElementById(id+"-sugg").classList.add("hid");}
+
+function pickS(id,c){
+  if(id==="s"){
+    document.getElementById("s-inp").value=c+"USDT";
+    ST.sSuggs=[]; hSugg("s"); doScan();
+  } else {
+    document.getElementById("c-inp").value=c+"USDT";
+    ST.cSuggs=[]; hSugg("c");
+    var btn=document.getElementById("c-btn");
+    btn.disabled=false;btn.style.background="#00ddff";btn.style.color="#04090c";
+  }
+}
+
+function sKey(e){
+  if(e.key==="ArrowDown"){e.preventDefault();ST.sIdx=Math.min(ST.sIdx+1,ST.sSuggs.length-1);rSugg("s",ST.sSuggs,ST.sIdx);}
+  else if(e.key==="ArrowUp"){e.preventDefault();ST.sIdx=Math.max(ST.sIdx-1,-1);rSugg("s",ST.sSuggs,ST.sIdx);}
+  else if(e.key==="Enter"){if(ST.sIdx>=0&&ST.sSuggs[ST.sIdx])pickS("s",ST.sSuggs[ST.sIdx]);else{hSugg("s");doScan();}}
+  else if(e.key==="Escape")hSugg("s");
+}
+function cKey(e){
+  if(e.key==="ArrowDown"){e.preventDefault();ST.cIdx=Math.min(ST.cIdx+1,ST.cSuggs.length-1);rSugg("c",ST.cSuggs,ST.cIdx);}
+  else if(e.key==="ArrowUp"){e.preventDefault();ST.cIdx=Math.max(ST.cIdx-1,-1);rSugg("c",ST.cSuggs,ST.cIdx);}
+  else if(e.key==="Enter"){if(ST.cIdx>=0&&ST.cSuggs[ST.cIdx])pickS("c",ST.cSuggs[ST.cIdx]);else hSugg("c");}
+  else if(e.key==="Escape")hSugg("c");
+}
+
+// ── INIT CONTROLS ─────────────────────────────────────────────────────────────
+function initCats(){
+  var el=document.getElementById("s-cats"); el.innerHTML="";
+  Object.keys(CATS).forEach(function(cat){
+    var b=document.createElement("button");
+    b.className="pill"+(cat===ST.cat?" on":"");
+    b.textContent=cat; b.style.whiteSpace="nowrap";
+    b.onclick=function(){ST.cat=cat;initCats();initPills();};
+    el.appendChild(b);
+  });
+}
+function initPills(){
+  var el=document.getElementById("s-pills"); el.innerHTML="";
+  var cur=document.getElementById("s-inp").value;
+  CATS[ST.cat].forEach(function(c){
+    var b=document.createElement("button");
+    b.className="pill"+(cur===c+"USDT"?" on":"");
+    b.textContent=c;
+    b.onclick=function(){document.getElementById("s-inp").value=c+"USDT";initPills();doScan();};
+    el.appendChild(b);
+  });
+}
+function initLevs(){
+  var el=document.getElementById("c-levs"); el.innerHTML="";
+  LEVS.forEach(function(l){
+    var b=document.createElement("button");
+    b.className="lbtn"+(l===ST.lev?" on":"");
+    b.textContent=l+"x";
+    b.onclick=function(){ST.lev=l;initLevs();updLevWarn();reCalc();};
+    el.appendChild(b);
+  });
+  document.getElementById("c-levlbl").textContent=ST.lev+"x";
+}
+function updLevWarn(){
+  var w=document.getElementById("c-levwarn");
+  if(ST.lev>=10){w.classList.remove("hid");w.innerHTML='<div style="padding:7px 10px;background:rgba(255,68,85,.07);border-radius:8px;border:1px solid rgba(255,68,85,.15);font-size:11px;color:#ff7788">⚠ Leverage '+ST.lev+'x — risc lichidare ridicat</div>';}
+  else if(ST.lev>=5){w.classList.remove("hid");w.innerHTML='<div style="padding:7px 10px;background:rgba(255,170,0,.07);border-radius:8px;border:1px solid rgba(255,170,0,.15);font-size:11px;color:#ffaa00">⚠ Leverage '+ST.lev+'x — monitorizează frecvent</div>';}
+  else w.classList.add("hid");
+}
+function setCap(v){
+  ST.cap=+v;
+  document.getElementById("c-caplbl").textContent=ST.cap+" USDT";
+  document.getElementById("c-caprange").value=ST.cap;
+  initCapBtns(); reCalc();
+}
+function initCapBtns(){
+  var el=document.getElementById("c-capbtns"); el.innerHTML="";
+  CAPS.forEach(function(v){
+    var b=document.createElement("button");
+    b.className="pill"+(v===ST.cap?" on":"");
+    b.textContent=v+"$";
+    b.onclick=function(){setCap(v);};
+    el.appendChild(b);
+  });
+}
+
+// ── HTML BUILDERS ─────────────────────────────────────────────────────────────
+var MKEYS=[
+  {k:"atr",lb:"ATR% Zilnic",mx:15,val:function(r){return r.atr_pct+"%";}},
+  {k:"r7",lb:"Range 7 Zile",mx:15,val:function(r){return r.range7d_pct+"%";}},
+  {k:"r30",lb:"Range 30 Zile",mx:15,val:function(r){return r.range30d_pct+"%";}},
+  {k:"vol",lb:"Volum 24h",mx:15,val:function(r){return r.volum_usd_M>=1000?(r.volum_usd_M/1000).toFixed(1)+"B USDT":r.volum_usd_M+"M USDT";}},
+  {k:"trend",lb:"Trend",mx:15,val:function(r){return r.trend_type;}},
+  {k:"oi",lb:"Open Interest",mx:10,val:function(r){return r.oi_usd_M>=1000?(r.oi_usd_M/1000).toFixed(1)+"B USDT":r.oi_usd_M+"M USDT";}},
+  {k:"bb",lb:"BB Width",mx:15,val:function(r){return r.bb_width_pct+"%";}}
+];
+
+function mkScoreCard(raw,sc){
+  var col=vc(sc.vd);
+  var rows=MKEYS.map(function(m){
+    var s=sc.s[m.k], c=dc(s,m.mx), pct=Math.round(s/m.mx*100);
+    return '<div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px">'
+      +'<div style="flex:1"><div class="mono" style="font-size:10px;color:#3a4a4a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px">'+m.lb+'</div>'
+      +'<div class="mono" style="font-size:15px;font-weight:700;color:#ccc">'+m.val(raw)+'</div></div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:52px">'
+      +'<div class="mono" style="font-size:12px;font-weight:700;color:'+c+'">'+s+'<span style="font-size:10px;color:#334">/'+m.mx+'</span></div>'
+      +'<div style="width:52px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+c+';border-radius:2px"></div></div>'
+      +'</div></div>';
+  }).join("");
+  return '<div style="background:'+col+'0f;border:1px solid '+col+'33;border-radius:16px;padding:18px;margin-bottom:10px;position:relative;overflow:hidden">'
+    +'<div style="position:absolute;top:-30px;right:-30px;width:110px;height:110px;background:radial-gradient(circle,'+col+'18,transparent 70%);border-radius:50%"></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
+    +'<div><div class="mono" style="font-size:10px;color:#445;letter-spacing:2px;margin-bottom:5px">'+raw.symbol+' · '+raw.price_approx+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:'+col+'">'+sc.ej+' '+sc.vr+'</div></div>'
+    +'<div style="text-align:right"><div class="mono" style="font-size:32px;font-weight:800;color:'+col+';line-height:1">'+sc.tot+'</div>'
+    +'<div style="font-size:11px;color:#334">/100</div></div></div>'
+    +'<div style="height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden">'
+    +'<div style="height:100%;width:'+sc.tot+'%;background:linear-gradient(90deg,'+col+'66,'+col+');border-radius:2px"></div></div></div>'
+    +'<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:4px 16px;margin-bottom:10px">'+rows+'</div>';
+}
+
+function mkDirCard(raw){
+  var d=raw&&raw.directie; if(!d)return"";
+  var opt=d.optima||"NEUTRU", col=drc(opt), bg=drbg(opt);
+  var bars=[{n:"LONG",s:d.sl||0,c:"#00ff88"},{n:"NEUTRU",s:d.sn||0,c:"#ffcc00"},{n:"SHORT",s:d.ss||0,c:"#ff4455"}];
+  var optSc=opt==="LONG"?d.sl:opt==="SHORT"?d.ss:d.sn;
+  var bH=bars.map(function(b){
+    return '<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="mono" style="width:58px;font-size:11px;font-weight:700;color:'+(b.n===opt?b.c:"#334")+'">'+(b.n==="LONG"?"📈":b.n==="SHORT"?"📉":"↔️")+" "+b.n+'</div>'
+      +'<div style="flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">'
+      +'<div style="height:100%;width:'+b.s+'%;background:'+b.c+';border-radius:3px;'+(b.n===opt?"box-shadow:0 0 8px "+b.c+"88":"")+'">'
+      +'</div></div><div class="mono" style="width:28px;font-size:12px;font-weight:700;color:'+(b.n===opt?b.c:"#334")+';text-align:right">'+b.s+'</div></div>';
+  }).join("");
+  var sigOpt=opt==="LONG"?d.sig_long:opt==="SHORT"?d.sig_short:d.sig_neutru;
+  var sH=(sigOpt&&sigOpt.length)?'<div style="margin-bottom:10px"><div class="mono" style="font-size:10px;color:'+col+';letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">✓ Semnale '+opt+'</div>'
+    +sigOpt.map(function(s){return'<div style="font-size:12px;color:#556;margin-bottom:5px;line-height:1.5"><span style="color:'+col+'77">▸ </span>'+s+'</div>';}).join("")+'</div>':"";
+  var indic=[
+    ["RSI 14",raw.rsi_14!=null?raw.rsi_14:"N/A",raw.rsi_14>70?"#ff7788":raw.rsi_14<30?"#00ff88":"#aaa"],
+    ["EMA",raw.ema_trend||"N/A",raw.ema_trend==="BULLISH"?"#00ff88":raw.ema_trend==="BEARISH"?"#ff4455":"#ffcc00"],
+    ["Funding",raw.funding_rate_pct!=null?(raw.funding_rate_pct>0?"+":"")+raw.funding_rate_pct+"%":"N/A",raw.funding_rate_pct>0.05?"#ff7788":raw.funding_rate_pct<-0.01?"#00ff88":"#aaa"],
+    ["L/S",raw.long_short_ratio||"N/A",raw.long_short_ratio>1.5?"#ff7788":raw.long_short_ratio<0.7?"#00ff88":"#aaa"]
+  ];
+  var iH=indic.map(function(i){return'<div style="background:rgba(255,255,255,.03);border-radius:8px;padding:7px 8px;text-align:center"><div style="font-size:9px;color:#334;text-transform:uppercase;margin-bottom:3px">'+i[0]+'</div><div class="mono" style="font-size:12px;font-weight:700;color:'+i[2]+'">'+i[1]+'</div></div>';}).join("");
+  return '<div style="background:'+bg+';border:1px solid '+col+'44;border-radius:16px;padding:16px;margin-bottom:10px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
+    +'<div style="flex:1"><div class="mono" style="font-size:10px;color:#445;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px">Direcție Optimă · Grid Futures</div>'
+    +'<div style="font-size:20px;font-weight:800;color:'+col+'">'+de(opt)+' '+dl(opt)+'</div>'
+    +'<div style="font-size:12px;color:#667;margin-top:5px;line-height:1.5">'+d.motiv+'</div></div>'
+    +'<div style="text-align:center;min-width:52px;flex-shrink:0"><div class="mono" style="font-size:28px;font-weight:800;color:'+col+';line-height:1">'+(optSc||0)+'</div><div style="font-size:10px;color:#334">/100</div></div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">'+bH+'</div>'
+    +sH
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">'+iH+'</div></div>';
+}
+
+function mkProfCard(cfg,price){
+  var col=pc(cfg.profil);
+  var priceH=cfg.lo_price?
+    '<div style="margin-bottom:14px">'
+    +'<div class="mono" style="font-size:10px;color:#00ddff;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">📍 Valori Concrete @ '+fp(price)+' · '+ST.lev+'x</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+    +'<div style="background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.25);border-radius:12px;padding:14px;text-align:center">'
+    +'<div style="font-size:10px;color:#445;margin-bottom:6px;text-transform:uppercase">⬇ Lower</div>'
+    +'<div class="mono" style="font-size:20px;font-weight:800;color:#00ff88;line-height:1">'+cfg.lo_price+'</div>'
+    +'<div style="font-size:11px;color:#447744;margin-top:4px">'+cfg.lo_pct+'</div></div>'
+    +'<div style="background:rgba(0,221,255,.08);border:1px solid rgba(0,221,255,.25);border-radius:12px;padding:14px;text-align:center">'
+    +'<div style="font-size:10px;color:#445;margin-bottom:6px;text-transform:uppercase">⬆ Upper</div>'
+    +'<div class="mono" style="font-size:20px;font-weight:800;color:#00ddff;line-height:1">'+cfg.hi_price+'</div>'
+    +'<div style="font-size:11px;color:#336677;margin-top:4px">'+cfg.hi_pct+'</div></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
+    +[["Pas Grid",cfg.step,col],["Profit/Grid",cfg.pgU,"#7fff44"],["Lichidare",cfg.liq_price,"#ff7788"]].map(function(x){
+      return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px;text-align:center">'
+        +'<div style="font-size:9px;color:#334;margin-bottom:4px;text-transform:uppercase">'+x[0]+'</div>'
+        +'<div class="mono" style="font-size:14px;font-weight:800;color:'+x[2]+'">'+x[1]+'</div></div>';
+    }).join("")+'</div></div>'
+    : '<div style="padding:10px 12px;background:rgba(255,204,0,.05);border:1px solid rgba(255,204,0,.15);border-radius:10px;margin-bottom:12px;font-size:12px;color:#aa8800">⚠ Introdu prețul mai sus pentru valori în USD</div>';
+  var params=[["Nr. Griduri",""+cfg.grids],["Tip Grid",cfg.tip],["Capital/Grid",cfg.cpg],["Tranzacții/zi",cfg.tx_zi],["Profit Zilnic",cfg.pz],["Range Total",cfg.total_pct]];
+  var parH=params.map(function(p){
+    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:9px 12px">'
+      +'<div style="font-size:10px;color:#334;text-transform:uppercase;margin-bottom:3px">'+p[0]+'</div>'
+      +'<div class="mono" style="font-size:14px;font-weight:700;color:'+col+'">'+p[1]+'</div></div>';
+  }).join("");
+  var aprBg=cfg.profil==="Conservator"?"0,221,255":cfg.profil==="Echilibrat"?"0,255,136":"255,170,0";
+  return '<div style="background:rgba(255,255,255,.02);border:1px solid '+col+'22;border-radius:16px;padding:16px;margin-bottom:12px">'
+    +priceH
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px">'+parH+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="background:rgba('+aprBg+',.06);border:1px solid '+col+'33;border-radius:10px;padding:12px;text-align:center">'
+    +'<div style="font-size:10px;color:#445;margin-bottom:4px">APR ESTIMAT</div>'
+    +'<div class="mono" style="font-size:22px;font-weight:800;color:'+col+'">'+cfg.apr+'</div></div>'
+    +'<div style="background:rgba(255,68,85,.05);border:1px solid rgba(255,68,85,.15);border-radius:10px;padding:12px;text-align:center">'
+    +'<div style="font-size:10px;color:#445;margin-bottom:4px">RISC LICHIDARE</div>'
+    +'<div style="font-size:16px;font-weight:800;color:'+rc(cfg.risc)+'">'+cfg.risc+'</div>'
+    +'<div class="mono" style="font-size:10px;color:#334;margin-top:2px">-'+cfg.liqP+'% față de preț</div>'
+    +'</div></div></div>';
+}
+
+// ── SCAN ──────────────────────────────────────────────────────────────────────
+async function doScan(){
+  var sym=document.getElementById("s-inp").value.trim().toUpperCase();
+  if(!sym)return;
+  if(sym.indexOf("USDT")<0)sym+="USDT";
+  document.getElementById("s-hint").classList.add("hid");
+  document.getElementById("s-err").classList.add("hid");
+  document.getElementById("s-out").classList.add("hid");
+  document.getElementById("s-load").classList.remove("hid");
+  document.getElementById("s-btn").disabled=true;
+  startStep("s-step",["Se obțin date...","Se calculează scorul...","Se analizează direcția..."]);
+  try{
+    var raw=await callAPI(DPROMPT(sym));
+    ST.sRaw=raw;
+    var sc=calcSc(raw);
+    var html=mkScoreCard(raw,sc)+mkDirCard(raw)
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+      +[["✓ Avantaje","#00ff88",raw.puncte_forte],["✗ Riscuri","#ff5566",raw.riscuri]].map(function(x){
+        return '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px">'
+          +'<div class="mono" style="font-size:10px;color:'+x[1]+';letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">'+x[0]+'</div>'
+          +(x[2]||[]).map(function(p){return'<div style="font-size:11px;color:#445;margin-bottom:6px;line-height:1.5"><span style="color:'+x[1]+'55">▸ </span>'+p+'</div>';}).join("")
+          +'</div>';
+      }).join("")+'</div>'
+      +(raw.obs?'<div style="padding:10px 12px;background:rgba(0,221,255,.03);border-radius:10px;border:1px solid rgba(0,221,255,.08);font-size:12px;color:#5a7a88;line-height:1.6;margin-bottom:10px">💡 '+raw.obs+'</div>':"")
+      +'<button onclick="toCalc(\''+sym+'\')" style="width:100%;padding:11px;background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.2);border-radius:12px;color:#ffaa00;font-weight:700;font-size:13px;margin-bottom:8px">⚙️ Calculează Grid Optim →</button>'
+      +'<div class="mono" style="text-align:center;font-size:11px;color:#1a2a1a">Scor JS · Nu este sfat financiar · DYOR</div>';
+    document.getElementById("s-out").innerHTML=html;
+    document.getElementById("s-out").classList.remove("hid");
+  }catch(e){
+    document.getElementById("s-err").textContent="⚠ "+e.message;
+    document.getElementById("s-err").classList.remove("hid");
+  }finally{
+    stopStep();
+    document.getElementById("s-load").classList.add("hid");
+    document.getElementById("s-btn").disabled=false;
+  }
+}
+
+function toCalc(sym){
+  document.getElementById("c-inp").value=sym;
+  var btn=document.getElementById("c-btn");btn.disabled=false;btn.style.background="#00ddff";btn.style.color="#04090c";
+  goTab("calc");
+}
+
+// ── CALCULATOR ────────────────────────────────────────────────────────────────
+async function doCalc(){
+  var sym=document.getElementById("c-inp").value.trim().toUpperCase();
+  if(!sym)return;
+  if(sym.indexOf("USDT")<0)sym+="USDT";
+  document.getElementById("c-err").classList.add("hid");
+  document.getElementById("c-out").classList.add("hid");
+  document.getElementById("c-load").classList.remove("hid");
+  document.getElementById("c-btn").disabled=true;
+  ST.prof="Echilibrat";
+  startStep("c-step",["Se obțin date coin...","Se calculează range...","Se optimizează griduri..."],"#ffaa00");
+  try{
+    var raw=await callAPI(DPROMPT(sym));
+    ST.cRaw=raw;
+    document.getElementById("c-pest").textContent="Estimat Claude: "+raw.price_approx;
+    document.getElementById("c-pest").classList.remove("hid");
+    document.getElementById("c-btn").textContent="🔄 Reîmprospătează";
+    reCalc();
+  }catch(e){
+    document.getElementById("c-err").textContent="⚠ "+e.message;
+    document.getElementById("c-err").classList.remove("hid");
+  }finally{
+    stopStep();
+    document.getElementById("c-load").classList.add("hid");
+    document.getElementById("c-btn").disabled=false;
+  }
+}
+
+function reCalc(){
+  if(!ST.cRaw)return;
+  var raw=ST.cRaw, lev=ST.lev, cap=ST.cap;
+  var pv=parseFloat(document.getElementById("c-price").value)||null;
+  var ps=document.getElementById("c-pstat");
+  if(pv&&pv>0){ps.innerHTML='<span style="color:#00ff88">✓ Setat</span><br><b class="mono">'+fp(pv)+'</b>';}
+  else{ps.innerHTML='<span style="color:#334">Fără preț</span><br><span style="font-size:10px">doar %</span>';}
+  var sc=calcSc(raw);
+  var profiles=calcGrid(raw,lev,cap,pv||null);
+  var prof=ST.prof;
+  var cfg=null;
+  for(var i=0;i<profiles.length;i++){if(profiles[i].profil===prof){cfg=profiles[i];break;}}
+  if(!cfg)cfg=profiles[1];
+
+  var profBtnsH=profiles.map(function(p){
+    var col=pc(p.profil), ac=p.profil===prof;
+    var acStyle=ac?"background:rgba("+( p.profil==="Conservator"?"0,221,255":p.profil==="Echilibrat"?"0,255,136":"255,170,0")+",.1);border:2px solid "+col+";box-shadow:0 0 12px "+col+"22":"border:1px solid rgba(255,255,255,.06)";
+    return '<button class="pbtn" onclick="setProf(\''+p.profil+'\')" style="'+acStyle+'">'
+      +'<div style="font-size:11px;font-weight:700;color:'+(ac?col:"#445")+';margin-bottom:2px">'+p.profil+'</div>'
+      +'<div class="mono" style="font-size:16px;font-weight:800;color:'+(ac?col:"#334")+'">'+p.apr+'</div>'
+      +'<div style="font-size:9px;color:#334">APR est.</div>'
+      +(p.profil==="Echilibrat"?'<div style="font-size:9px;color:#00ddff;margin-top:2px">★ REC</div>':"")
+      +'</button>';
+  }).join("");
+
+  var html='<div style="background:rgba(255,170,0,.05);border:1px solid rgba(255,170,0,.15);border-radius:14px;padding:12px 14px;margin-bottom:10px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+    +'<span class="mono" style="font-size:12px;font-weight:700;color:#ffaa00">'+raw.symbol+'</span>'
+    +'<span style="font-size:11px;color:'+vc(sc.vd)+';font-weight:700">'+sc.tot+'/100 '+sc.ej+'</span></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
+    +[["ATR",raw.atr_pct+"%"],["Range 30Z",raw.range30d_pct+"%"],["Trend",raw.trend_type]].map(function(x){
+      return '<div style="background:rgba(255,255,255,.03);border-radius:8px;padding:7px 8px"><div style="font-size:9px;color:#445;margin-bottom:2px;text-transform:uppercase">'+x[0]+'</div><div class="mono" style="font-size:12px;font-weight:700;color:#ffaa00">'+x[1]+'</div></div>';
+    }).join("")+'</div></div>'
+    +mkDirCard(raw)
+    +'<div class="mono" style="font-size:10px;color:#445;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Selectează Profil <span style="color:#00ddff;font-size:9px">· actualizare instantă</span></div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:12px">'+profBtnsH+'</div>'
+    +mkProfCard(cfg,pv)
+    +'<div class="mono" style="text-align:center;font-size:11px;color:#1a2a1a">Calcul JS · Nu este sfat financiar · DYOR</div>';
+  document.getElementById("c-out").innerHTML=html;
+  document.getElementById("c-out").classList.remove("hid");
+}
+
+function setProf(p){ST.prof=p;reCalc();}
+
+// ── TOP 10 ────────────────────────────────────────────────────────────────────
+async function doTop10(){
+  document.getElementById("t-hint").classList.add("hid");
+  document.getElementById("t-err").classList.add("hid");
+  document.getElementById("t-out").classList.add("hid");
+  document.getElementById("t-load").classList.remove("hid");
+  document.getElementById("t-btn").disabled=true;
+  startStep("t-step",["Se obțin date...","Se calculează scoruri JS...","Se ordonează lista..."]);
+  try{
+    var d=await callAPI(T10PROMPT,3000);
+    var arr=d.c||d.coins||[];
+    var coins=arr.map(normalize10).map(function(c){return Object.assign({},c,{sc:calcSc(c)});});
+    coins.sort(function(a,b){return b.sc.tot-a.sc.tot;});
+    coins.forEach(function(c,i){c.rank=i+1;});
+    ST.t10=coins; ST.expRow=-1;
+    renderT10();
+  }catch(e){
+    document.getElementById("t-err").textContent="⚠ "+e.message+" — Apasă din nou";
+    document.getElementById("t-err").classList.remove("hid");
+  }finally{
+    stopStep();
+    document.getElementById("t-load").classList.add("hid");
+    document.getElementById("t-btn").disabled=false;
+    document.getElementById("t-btn").textContent="⟳ Reîmprospătează";
+  }
+}
+
+function rankC(r){return r<=3?"#FFD700":r<=7?"#C0C0C0":"#CD7F32";}
+function rankE(r){return r===1?"🥇":r===2?"🥈":r===3?"🥉":r;}
+
+function renderT10(){
+  var coins=ST.t10; if(!coins)return;
+  var hdr='<div style="display:grid;grid-template-columns:28px 1fr 46px 65px;gap:6px;padding:6px 12px;margin-bottom:4px">'
+    +["#","Coin","Scor","Direcție"].map(function(h){return'<div class="mono" style="font-size:9px;color:#334;text-transform:uppercase;letter-spacing:1.5px">'+h+'</div>';}).join("")+'</div>';
+  var rows=coins.map(function(c,idx){
+    var sc=c.sc, d=c.directie;
+    var dH=d?'<span class="mono" style="font-size:12px;font-weight:700;color:'+drc(d.optima)+'">'+de(d.optima)+' '+d.optima+'</span>':'<span style="color:#334">—</span>';
+    var exp=ST.expRow===idx?
+      '<div class="fi" style="background:rgba(0,221,255,.04);border:1px solid rgba(0,221,255,.1);border-radius:12px;padding:12px 14px;margin-bottom:8px;margin-top:-4px">'
+      +(d?'<div style="padding:9px 12px;background:'+drbg(d.optima)+';border:1px solid '+drc(d.optima)+'44;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
+        +'<div><div style="font-size:10px;color:#445;margin-bottom:3px;text-transform:uppercase">Direcție Optimă</div>'
+        +'<div style="font-size:15px;font-weight:800;color:'+drc(d.optima)+'">'+de(d.optima)+' '+d.optima+'</div></div>'
+        +'<div style="font-size:11px;color:#334;text-align:right;max-width:150px;line-height:1.4">'+d.motiv+'</div></div>':"")
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
+      +[["ATR%",c.atr_pct+"%"],["Volum",c.volum_usd_M>=1000?(c.volum_usd_M/1000).toFixed(1)+"B":c.volum_usd_M+"M"],["Trend",c.trend_type]].map(function(x){
+        return '<div><div class="mono" style="font-size:10px;color:#334;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">'+x[0]+'</div>'
+          +'<div class="mono" style="font-size:13px;font-weight:700;color:#00ddff">'+x[1]+'</div></div>';
+      }).join("")+'</div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button onclick="toScan(\''+c.symbol+'\')" style="flex:1;padding:9px;background:rgba(0,221,255,.1);border:1px solid rgba(0,221,255,.25);border-radius:10px;color:#00ddff;font-weight:700;font-size:12px">🔍 Analiză</button>'
+      +'<button onclick="toCalc(\''+c.symbol+'\')" style="flex:1;padding:9px;background:rgba(255,170,0,.1);border:1px solid rgba(255,170,0,.25);border-radius:10px;color:#ffaa00;font-weight:700;font-size:12px">⚙️ Calculator</button>'
+      +'</div></div>':'';
+    return '<div>'
+      +'<div class="row" onclick="togRow('+idx+')">'
+      +'<div class="mono" style="font-size:13px;font-weight:800;color:'+rankC(c.rank)+';display:flex;align-items:center">'+rankE(c.rank)+'</div>'
+      +'<div style="min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+      +'<span class="mono" style="font-size:13px;font-weight:700;color:#ddd">'+c.symbol.replace("USDT","")+'</span>'
+      +'<span style="font-size:11px">'+sc.ej+'</span></div>'
+      +'<div class="mono" style="font-size:10px;color:#3a4a4a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.motiv+'</div></div>'
+      +'<div style="display:flex;flex-direction:column;justify-content:center">'
+      +'<div class="mono" style="font-size:15px;font-weight:800;color:'+vc(sc.vd)+'">'+sc.tot+'</div>'
+      +'<div style="height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:3px;overflow:hidden">'
+      +'<div style="height:100%;width:'+sc.tot+'%;background:'+vc(sc.vd)+';border-radius:2px"></div></div></div>'
+      +'<div style="display:flex;align-items:center">'+dH+'</div>'
+      +'</div>'+exp+'</div>';
+  }).join("");
+  var footer='<div class="mono" style="text-align:center;font-size:11px;color:#1a2a1a;margin-top:8px">Scoruri JS · Nu este sfat financiar</div>';
+  document.getElementById("t-out").innerHTML=hdr+rows+footer;
+  document.getElementById("t-out").classList.remove("hid");
+}
+
+function togRow(idx){ST.expRow=ST.expRow===idx?-1:idx;renderT10();}
+function toScan(sym){document.getElementById("s-inp").value=sym;goTab("scan");doScan();}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+initCats(); initPills(); initLevs(); updLevWarn(); initCapBtns();
 </script>
 </body>
 </html>
