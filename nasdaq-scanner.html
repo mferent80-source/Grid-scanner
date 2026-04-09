@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon-nasdaq.svg">
+<link rel="apple-touch-icon" href="icon-nasdaq.svg">
+<meta name="apple-mobile-web-app-title" content="Nasdaq Scanner">
+<meta name="application-name" content="Nasdaq Scanner">
+<meta name="theme-color" content="#f8faff">
+<title>Nasdaq Opportunity Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6ff;--bg2:#ffffff;--bg3:#f0f2fc;--bg4:#e8ebf8;
+  --b1:#dde2f5;--b2:#c8d0ed;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
+  --acc:#2563eb;--accl:rgba(37,99,235,.08);--accb:rgba(37,99,235,.22);
+  --green:#059669;--greenl:rgba(5,150,105,.08);--greenb:rgba(5,150,105,.22);
+  --red:#dc2626;--redl:rgba(220,38,38,.08);--redb:rgba(220,38,38,.22);
+  --gold:#d97706;--goldl:rgba(217,119,6,.08);--goldb:rgba(217,119,6,.22);
+  --cyan:#0891b2;--cyanl:rgba(8,145,178,.07);
+  --purple:#7c3aed;--purpll:rgba(124,58,237,.08);--purplb:rgba(124,58,237,.22);
+  --orange:#ea580c;--orangl:rgba(234,88,12,.08);
+  --teal:#0d9488;--teall:rgba(13,148,136,.08);--tealb:rgba(13,148,136,.22);
+  --mono:'DM Mono',monospace;--head:'Sora',sans-serif;
+  --r:12px;--rs:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shh:0 4px 16px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100vh;overflow-x:hidden}
+body{font-family:var(--mono);background:var(--bg);color:var(--t1);min-height:100vh;}
+.app{max-width:960px;margin:0 auto;padding:14px 14px 100px;}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--b1);margin-bottom:18px;gap:10px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:11px;}
+.brand-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#0d9488);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(37,99,235,.25);flex-shrink:0;}
+.brand-name{font-family:var(--head);font-weight:800;font-size:1.25rem;color:var(--t1);}
+.brand-name span{color:var(--acc);}
+.brand-sub{font-size:.58rem;color:var(--t3);letter-spacing:.5px;margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+
+/* MARKET STATUS */
+.market-pill{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--b1);border-radius:20px;padding:5px 12px;font-size:.62rem;font-weight:600;color:var(--t2);box-shadow:var(--sh);}
+
+/* SENTIMENT GAUGE */
+.sentiment-bar{
+  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
+  padding:10px 14px;margin-bottom:14px;box-shadow:var(--sh);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.sent-label{font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.sent-track{flex:1;min-width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));position:relative;overflow:visible;}
+.sent-needle{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:var(--bg2);border:2px solid var(--t1);transition:left .6s ease;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.sent-val{font-family:var(--head);font-weight:800;font-size:1rem;min-width:32px;text-align:right;}
+.sent-txt{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:20px;}
+.sent-extreme-fear{background:var(--redl);color:var(--red);border:1px solid var(--redb);}
+.sent-fear{background:var(--orangl);color:var(--orange);border:1px solid rgba(234,88,12,.22);}
+.sent-neutral{background:var(--goldl);color:var(--gold);border:1px solid var(--goldb);}
+.sent-greed{background:var(--greenl);color:var(--green);border:1px solid var(--greenb);}
+.sent-extreme-greed{background:rgba(5,150,105,.15);color:var(--green);border:1px solid var(--greenb);}
+.vix-val{font-size:.62rem;color:var(--t3);margin-left:auto;}
+
+/* WATCHLIST */
+.watchlist-wrap{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);padding:10px 12px;margin-bottom:14px;}
+.wl-title{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.wl-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;min-height:22px;}
+.wl-chip{display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--accb);border-radius:20px;padding:3px 9px;font-size:.6rem;font-weight:700;color:var(--acc);}
+.wl-chip button{background:none;border:none;color:var(--t3);cursor:pointer;font-size:.75rem;line-height:1;padding:0;}
+.wl-chip button:hover{color:var(--red);}
+.wl-add{display:flex;gap:6px;}
+.wl-inp{flex:1;padding:6px 10px;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--rs);font-size:.7rem;font-family:var(--mono);color:var(--t1);outline:none;text-transform:uppercase;}
+.wl-inp:focus{border-color:var(--accb);}
+.wl-btn{padding:6px 14px;border-radius:var(--rs);font-size:.65rem;font-weight:700;border:none;background:var(--acc);color:#fff;cursor:pointer;}
+.wl-btn:hover{background:#1d4ed8;}
+
+/* EARNINGS BADGE */
+.earnings-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(217,119,6,.12);border:1px solid var(--goldb);border-radius:4px;padding:2px 7px;font-size:.52rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-left:4px;}
+.watchlist-star{color:#f59e0b;font-size:.75rem;margin-left:3px;}
+
+/* SPARKLINE */
+.sparkline-wrap{margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.spark-chg{font-size:.6rem;font-weight:700;}
+.spark-chg.up{color:var(--green);}
+.spark-chg.down{color:var(--red);}
+
+/* HEATMAP */
+.heatmap-wrap{display:flex;flex-direction:column;gap:16px;}
+.heatmap-title{font-family:var(--head);font-weight:700;font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;}
+.heatmap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:480px){.heatmap-grid{grid-template-columns:1fr 1fr;}}
+.hm-tile{border-radius:10px;padding:11px 12px;cursor:default;transition:transform .15s;position:relative;overflow:hidden;}
+.hm-tile:hover{transform:translateY(-2px);}
+.hm-sector{font-size:.58rem;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;}
+.hm-chg{font-family:var(--head);font-weight:800;font-size:1.2rem;color:#fff;line-height:1;}
+.hm-count{font-size:.52rem;color:rgba(255,255,255,.65);margin-top:3px;}
+.hm-best{font-size:.56rem;color:rgba(255,255,255,.8);margin-top:5px;display:flex;gap:4px;}
+.hm-best span{background:rgba(255,255,255,.18);border-radius:4px;padding:2px 6px;}
+
+/* NEWS */
+.news-section{margin-top:8px;border-top:1px solid var(--b1);padding-top:8px;}
+.news-title{font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.news-item{display:flex;flex-direction:column;gap:2px;margin-bottom:7px;padding-bottom:7px;border-bottom:1px solid var(--bg3);}
+.news-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.news-headline{font-size:.62rem;color:var(--t1);line-height:1.4;font-weight:500;}
+.news-headline a{color:var(--t1);text-decoration:none;}
+.news-headline a:hover{color:var(--acc);}
+.news-meta{font-size:.52rem;color:var(--t3);display:flex;gap:8px;}
+.news-sentiment{font-size:.52rem;font-weight:700;padding:1px 5px;border-radius:3px;}
+.ns-pos{background:var(--greenl);color:var(--green);}
+.ns-neg{background:var(--redl);color:var(--red);}
+.ns-neu{background:var(--goldl);color:var(--gold);}
+.news-loading{font-size:.6rem;color:var(--t3);padding:6px 0;text-align:center;}
+
+/* PRICE ALERT */
+.alert-section{margin-top:8px;border-top:1px solid var(--b1);padding-top:8px;}
+.alert-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.alert-lbl{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;}
+.alert-inp{flex:1;min-width:80px;padding:5px 9px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);font-size:.68rem;font-family:var(--mono);color:var(--t1);outline:none;}
+.alert-inp:focus{border-color:var(--accb);}
+.alert-btn{padding:5px 11px;border-radius:var(--rs);font-size:.6rem;font-weight:700;border:none;background:var(--acc);color:#fff;cursor:pointer;white-space:nowrap;}
+.alert-btn:hover{background:#1d4ed8;}
+.alert-active{display:flex;align-items:center;gap:6px;background:var(--goldl);border:1px solid var(--goldb);border-radius:6px;padding:4px 9px;font-size:.6rem;color:var(--gold);font-weight:600;}
+.alert-active button{background:none;border:none;color:var(--gold);cursor:pointer;font-size:.75rem;}
+
+/* AI ANALYSIS */
+.ai-section{margin-top:8px;border-top:1px solid var(--b1);padding-top:8px;}
+.ai-btn{width:100%;padding:8px;border-radius:8px;border:1px solid var(--purplb);background:var(--purpll);color:var(--purple);font-size:.65rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;}
+.ai-btn:hover{background:var(--purple);color:#fff;}
+.ai-btn:disabled{opacity:.5;cursor:not-allowed;}
+.ai-result{margin-top:8px;background:var(--bg3);border:1px solid var(--purplb);border-radius:8px;padding:10px 12px;font-size:.65rem;color:var(--t2);line-height:1.65;}
+.ai-result strong{color:var(--t1);}
+.ai-loading{text-align:center;padding:10px;color:var(--purple);font-size:.62rem;}
+.ai-spin{display:inline-block;animation:spin .7s linear infinite;margin-right:4px;}
+.mdot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;}
+.mdot.open{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 1.5s infinite;}
+.mdot.pre{background:var(--gold);box-shadow:0 0 6px var(--gold);animation:blink 1s infinite;}
+.mdot.closed{background:var(--red);}
+.mdot.scanning{background:var(--acc);box-shadow:0 0 6px var(--acc);animation:blink .8s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.notif-btn{padding:6px 12px;border-radius:var(--rs);font-size:.62rem;font-weight:600;cursor:pointer;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);transition:all .15s;box-shadow:var(--sh);}
+.notif-btn.granted{border-color:var(--greenb);background:var(--greenl);color:var(--green);}
+.notif-btn.denied{border-color:var(--redb);background:var(--redl);color:var(--red);}
+
+/* MARKET HOURS BANNER */
+.market-banner{padding:8px 14px;border-radius:var(--rs);font-size:.65rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.market-banner.open{background:var(--greenl);border:1px solid var(--greenb);color:var(--green);}
+.market-banner.pre{background:var(--goldl);border:1px solid var(--goldb);color:var(--gold);}
+.market-banner.closed{background:var(--redl);border:1px solid var(--redb);color:var(--red);}
+
+/* CONTROL PANEL */
+.control-panel{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--sh);}
+.cp-title{font-family:var(--head);font-weight:700;font-size:.72rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.cp-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--acc);}
+.cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+@media(max-width:550px){.cp-grid{grid-template-columns:1fr 1fr;}}
+.cp-field label{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px;}
+.cp-inp{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t1);font-size:.72rem;font-family:var(--mono);outline:none;transition:border .15s;}
+.cp-inp:focus{border-color:var(--accb);}
+.cp-inp::placeholder{color:var(--t3);}
+
+/* sector filter */
+.sector-toggles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.sec-tog{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);padding:6px 10px;cursor:pointer;transition:all .15s;user-select:none;font-size:.6rem;}
+.sec-tog.on{border-color:var(--accb);background:var(--accl);color:var(--acc);}
+
+/* signal toggles */
+.signal-toggles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.sig-tog{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);padding:7px 11px;cursor:pointer;transition:all .15s;user-select:none;font-size:.62rem;}
+.sig-tog.on{border-color:var(--accb);background:var(--accl);}
+.sig-tog.on.c-green{border-color:var(--greenb);background:var(--greenl);}
+.sig-tog.on.c-red{border-color:var(--redb);background:var(--redl);}
+.sig-tog.on.c-gold{border-color:var(--goldb);background:var(--goldl);}
+.sig-tog.on.c-purple{border-color:var(--purplb);background:var(--purpll);}
+.sig-tog.on.c-teal{border-color:var(--tealb);background:var(--teall);}
+.sig-tog.on.c-orange{border-color:rgba(234,88,12,.22);background:var(--orangl);}
+.tog-dot{width:8px;height:8px;border-radius:50%;background:var(--t3);flex-shrink:0;}
+.sig-tog.on .tog-dot{background:var(--acc);}
+.sig-tog.on.c-green .tog-dot{background:var(--green);}
+.sig-tog.on.c-red .tog-dot{background:var(--red);}
+.sig-tog.on.c-gold .tog-dot{background:var(--gold);}
+.sig-tog.on.c-purple .tog-dot{background:var(--purple);}
+.sig-tog.on.c-teal .tog-dot{background:var(--teal);}
+.sig-tog.on.c-orange .tog-dot{background:var(--orange);}
+
+/* start/stop */
+.btn-start{padding:12px 28px;border-radius:10px;font-family:var(--head);font-weight:800;font-size:.82rem;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,var(--acc),var(--teal));color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.3);}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(37,99,235,.4);}
+.btn-stop{padding:12px 28px;border-radius:10px;font-family:var(--head);font-weight:800;font-size:.82rem;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--redb);cursor:pointer;transition:all .2s;background:var(--redl);color:var(--red);}
+.btn-stop:hover{background:var(--red);color:#fff;}
+.progress-bar{height:4px;background:var(--b1);border-radius:2px;margin-top:10px;overflow:hidden;display:none;}
+.progress-bar.show{display:block;}
+.progress-fill{height:100%;border-radius:2px;width:0%;transition:width .4s ease;background:linear-gradient(90deg,var(--acc),var(--teal));}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+@media(max-width:560px){.stats{grid-template-columns:repeat(3,1fr);}}
+.stat{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:9px 11px;box-shadow:var(--sh);position:relative;overflow:hidden;}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0;}
+.stat.s-acc::after{background:var(--acc);}
+.stat.s-green::after{background:var(--green);}
+.stat.s-red::after{background:var(--red);}
+.stat.s-gold::after{background:var(--gold);}
+.stat.s-teal::after{background:var(--teal);}
+.stat-val{font-family:var(--head);font-weight:800;font-size:1.3rem;line-height:1;}
+.stat-lbl{font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-top:4px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--bg2);border-radius:10px;padding:4px;border:1px solid var(--b1);box-shadow:var(--sh);}
+.tab{flex:1;padding:7px 4px;text-align:center;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);border-radius:7px;cursor:pointer;transition:all .15s;}
+.tab.act{background:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+
+/* SIGNAL CARDS */
+.signals-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:500px){.signals-grid{grid-template-columns:1fr;}}
+.sig-card{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);transition:all .2s;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);position:relative;}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.sig-card:hover{box-shadow:var(--shh);transform:translateY(-2px);}
+.sig-card.priority-high{border-color:transparent;box-shadow:0 0 0 2px var(--red),var(--sh);}
+.sig-card.priority-med{border-color:transparent;box-shadow:0 0 0 2px var(--gold),var(--sh);}
+
+.sig-stripe{height:3px;}
+.stripe-pump{background:linear-gradient(90deg,var(--green),#10b981);}
+.stripe-dump{background:linear-gradient(90deg,var(--red),#ef4444);}
+.stripe-volatility{background:linear-gradient(90deg,var(--gold),#f59e0b);}
+.stripe-rsi-low{background:linear-gradient(90deg,var(--acc),#3b82f6);}
+.stripe-rsi-high{background:linear-gradient(90deg,var(--orange),#f97316);}
+.stripe-volume{background:linear-gradient(90deg,var(--purple),#a855f7);}
+.stripe-swing{background:linear-gradient(90deg,var(--teal),#14b8a6);}
+.stripe-breakout{background:linear-gradient(90deg,#ec4899,#f43f5e);}
+
+.sig-body{padding:12px 13px;}
+.sig-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.sig-left{flex:1;}
+.sig-coin{font-family:var(--head);font-weight:800;font-size:1.05rem;color:var(--t1);display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.sig-sector{font-size:.5rem;color:var(--t3);margin-top:1px;}
+.sig-type-badge{font-size:.52rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.tb-pump{background:var(--greenl);color:var(--green);border:1px solid var(--greenb);}
+.tb-dump{background:var(--redl);color:var(--red);border:1px solid var(--redb);}
+.tb-volatility{background:var(--goldl);color:var(--gold);border:1px solid var(--goldb);}
+.tb-rsi-low{background:var(--accl);color:var(--acc);border:1px solid var(--accb);}
+.tb-rsi-high{background:var(--orangl);color:var(--orange);border:1px solid rgba(234,88,12,.22);}
+.tb-volume{background:var(--purpll);color:var(--purple);border:1px solid var(--purplb);}
+.tb-swing{background:var(--teall);color:var(--teal);border:1px solid var(--tealb);}
+.tb-breakout{background:rgba(236,72,153,.08);color:#ec4899;border:1px solid rgba(236,72,153,.22);}
+
+.sig-price{font-size:.9rem;font-weight:700;color:var(--t2);margin-top:3px;}
+.sig-right{text-align:right;}
+.sig-chg{font-family:var(--head);font-weight:800;font-size:1.1rem;}
+.sig-chg.up{color:var(--green);}
+.sig-chg.down{color:var(--red);}
+.sig-time{font-size:.58rem;color:var(--t3);margin-top:3px;}
+
+/* description */
+.sig-desc{font-size:.65rem;color:var(--t2);line-height:1.6;margin-bottom:8px;}
+.sig-desc strong{color:var(--t1);}
+.sig-desc .warn{color:var(--orange);font-weight:700;}
+.sig-desc .good{color:var(--green);font-weight:700;}
+.sig-desc .muted{color:var(--t3);}
+
+/* trade action badge */
+.trade-action{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.ta-long{background:rgba(5,150,105,.12);color:var(--green);border:1px solid rgba(5,150,105,.3);}
+.ta-short{background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.28);}
+.ta-scalp{background:rgba(37,99,235,.1);color:var(--acc);border:1px solid rgba(37,99,235,.28);}
+.ta-swing{background:rgba(13,148,136,.09);color:var(--teal);border:1px solid rgba(13,148,136,.25);}
+.ta-wait{background:rgba(217,119,6,.1);color:var(--gold);border:1px solid rgba(217,119,6,.28);}
+.ta-dca{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.28);}
+
+/* trade detail */
+.trade-detail{background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.td-item{display:flex;flex-direction:column;gap:2px;}
+.td-lbl{font-size:.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;}
+.td-val{font-size:.66rem;font-weight:700;color:var(--t1);}
+
+/* RECOMMENDATION CARDS */
+.reco-grid{display:flex;flex-direction:column;gap:10px;}
+.reco-section-title{font-family:var(--head);font-weight:700;font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px;margin:8px 0 4px;display:flex;align-items:center;gap:7px;}
+.reco-section-title::before{content:'';width:3px;height:12px;border-radius:2px;}
+.reco-section-title.buy::before{background:var(--green);}
+.reco-section-title.sell::before{background:var(--red);}
+.reco-card{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+.reco-card.buy-strong{box-shadow:0 0 0 2px var(--green),var(--sh);border-color:transparent;}
+.reco-card.sell-strong{box-shadow:0 0 0 2px var(--red),var(--sh);border-color:transparent;}
+.reco-stripe-buy{height:3px;background:linear-gradient(90deg,var(--green),#10b981);}
+.reco-stripe-sell{height:3px;background:linear-gradient(90deg,var(--red),#f87171);}
+.reco-body{padding:12px 13px;}
+.reco-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.reco-info{flex:1;}
+.reco-ticker{font-family:var(--head);font-weight:800;font-size:1.1rem;color:var(--t1);display:flex;align-items:center;gap:6px;}
+.reco-sector{font-size:.55rem;color:var(--t3);margin-top:2px;}
+.reco-price{font-size:.9rem;font-weight:700;color:var(--t2);margin-top:2px;}
+.reco-score-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.reco-score{font-family:var(--head);font-weight:800;font-size:1.5rem;line-height:1;}
+.reco-score.buy{color:var(--green);}
+.reco-score.sell{color:var(--red);}
+.reco-score-lbl{font-size:.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
+.reco-verdict{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:6px;font-size:.62rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:9px;}
+.verdict-buy-strong{background:rgba(5,150,105,.14);color:var(--green);border:1px solid var(--greenb);}
+.verdict-buy{background:rgba(5,150,105,.08);color:var(--green);border:1px solid rgba(5,150,105,.18);}
+.verdict-neutral{background:var(--goldl);color:var(--gold);border:1px solid var(--goldb);}
+.verdict-sell{background:var(--redl);color:var(--red);border:1px solid var(--redb);}
+.verdict-sell-strong{background:rgba(220,38,38,.13);color:var(--red);border:1px solid var(--redb);}
+.reco-reasons{margin-bottom:10px;}
+.reco-reason{display:flex;align-items:flex-start;gap:6px;font-size:.63rem;color:var(--t2);line-height:1.45;margin-bottom:5px;}
+.rdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.rdot.pos{background:var(--green);}
+.rdot.neg{background:var(--red);}
+.rdot.neu{background:var(--gold);}
+.reco-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px;}
+.reco-stat{background:var(--bg3);border:1px solid var(--b1);border-radius:6px;padding:5px 7px;}
+.reco-stat-val{font-size:.7rem;font-weight:700;color:var(--t1);}
+.reco-stat-lbl{font-size:.49rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.conf-wrap{margin-bottom:10px;}
+.conf-row{display:flex;justify-content:space-between;font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.conf-track{height:5px;background:var(--b1);border-radius:3px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+
+/* metrics */
+.sig-metrics{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.metric{display:flex;flex-direction:column;background:var(--bg3);border:1px solid var(--b1);border-radius:6px;padding:5px 9px;min-width:60px;}
+.metric-val{font-size:.7rem;font-weight:700;color:var(--t1);}
+.metric-lbl{font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+
+/* strength */
+.strength-wrap{margin-bottom:8px;}
+.strength-lbl{font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;display:flex;justify-content:space-between;}
+.strength-track{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width .5s ease;}
+
+/* actions */
+.sig-actions{display:flex;gap:5px;}
+.btn-sig{flex:1;padding:6px 8px;border-radius:6px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--b1);background:var(--bg3);color:var(--t2);cursor:pointer;transition:all .15s;text-align:center;text-decoration:none;display:block;}
+.btn-sig:hover{border-color:var(--b2);color:var(--t1);}
+.btn-sig.primary{background:var(--accl);border-color:var(--accb);color:var(--acc);}
+.btn-sig.primary:hover{background:var(--acc);color:#fff;}
+
+/* empty/loading */
+.empty{text-align:center;padding:52px 20px;color:var(--t3);}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.2;}
+.empty-title{font-family:var(--head);font-weight:700;font-size:.9rem;color:var(--t2);margin-bottom:6px;}
+.empty-sub{font-size:.65rem;line-height:1.6;}
+.scan-anim{display:flex;flex-direction:column;align-items:center;padding:52px 20px;}
+.scan-ring{width:56px;height:56px;border-radius:50%;border:3px solid var(--b1);border-top-color:var(--acc);animation:spin .7s linear infinite;margin-bottom:14px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-txt{font-size:.7rem;color:var(--t2);font-weight:600;}
+.scan-coin{font-size:.62rem;color:var(--t3);margin-top:4px;}
+
+/* filter */
+.filter-bar{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap;}
+.search-wrap{flex:1;min-width:140px;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--rs);padding:7px 11px;box-shadow:var(--sh);transition:border .15s;}
+.search-wrap:focus-within{border-color:var(--accb);}
+.search-wrap svg{width:13px;height:13px;stroke:var(--t3);flex-shrink:0;}
+.search-wrap input{background:none;border:none;outline:none;color:var(--t1);font-size:.7rem;width:100%;font-family:var(--mono);}
+.search-wrap input::placeholder{color:var(--t3);}
+.ftag{padding:5px 11px;border-radius:20px;font-size:.6rem;font-weight:600;cursor:pointer;border:1px solid var(--b1);background:var(--bg2);color:var(--t3);transition:all .15s;white-space:nowrap;box-shadow:var(--sh);}
+.ftag:hover{color:var(--t2);}
+.ftag.act{border-color:var(--accb);background:var(--accl);color:var(--acc);}
+
+/* log */
+.log-panel{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-top:14px;box-shadow:var(--sh);}
+.log-hdr{padding:8px 13px;border-bottom:1px solid var(--b1);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;}
+.log-clear{background:none;border:none;color:var(--t3);font-size:.58rem;cursor:pointer;}
+.log-clear:hover{color:var(--red);}
+.log-body{padding:6px 13px;max-height:130px;overflow-y:auto;font-size:.62rem;line-height:1.8;}
+.log-body::-webkit-scrollbar{width:3px;}
+.log-body::-webkit-scrollbar-thumb{background:var(--b1);}
+.ll{display:flex;gap:8px;}
+.lt{color:var(--t3);flex-shrink:0;}
+.lok{color:var(--green);}
+.lwarn{color:var(--gold);}
+.lerr{color:var(--red);}
+.linfo{color:var(--acc);}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:10px 18px;font-size:.7rem;color:var(--t1);z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:var(--shh);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-left:3px solid var(--green);}
+.toast.err{border-left:3px solid var(--red);}
+
+/* ── MACRO BAR (Nasdaq) ── */
+.macro-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:14px;flex-wrap:wrap;box-shadow:var(--sh);}
+.mc-item{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:56px;}
+.mc-val{font-family:var(--head);font-weight:800;font-size:.82rem;}
+.mc-lbl{font-size:.49rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;}
+.mc-div{width:1px;height:26px;background:var(--b1);flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="brand">
+    <div class="brand-icon">📊</div>
+    <div>
+      <div class="brand-name">Nasdaq <span>Scanner</span></div>
+      <div class="brand-sub">Oportunități live · Finnhub API · PWA instalabil</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="market-pill">
+      <div class="mdot" id="mdot"></div>
+      <span id="marketStatusTxt">SE VERIFICĂ...</span>
+    </div>
+    <div class="market-pill">
+      <div class="mdot" id="sdot"></div>
+      <span id="statusTxt">OPRIT</span>
+    </div>
+    <a href="index.html" style="padding:5px 11px;border-radius:7px;font-size:.6rem;font-weight:600;border:1px solid var(--b1);background:var(--bg2);color:var(--t2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:all .15s;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t2)'">← Hub</a>
+    <div class="notif-btn" id="notifBtn" onclick="requestNotif()">🔔 Notificări</div>
+    <div id="pwaInstallBtn" onclick="installPWA()" style="display:none;padding:6px 12px;border-radius:var(--rs);font-size:.62rem;font-weight:600;cursor:pointer;border:1px solid var(--accb);background:var(--accl);color:var(--acc);align-items:center;gap:5px;">📱 Instalează</div>
+  </div>
+</div>
+
+<!-- MARKET BANNER -->
+<div class="market-banner" id="marketBanner">
+  <span>⏳</span><span id="marketBannerTxt">Se verifică orele de piață...</span>
+</div>
+
+<!-- SENTIMENT BAR -->
+<div class="sentiment-bar" id="sentimentBar" style="display:none">
+  <span class="sent-label">🌡️ Sentimentul pieței</span>
+  <div class="sent-track">
+    <div class="sent-needle" id="sentNeedle" style="left:50%"></div>
+  </div>
+  <span class="sent-val" id="sentVal">—</span>
+  <span class="sent-txt" id="sentTxt">—</span>
+  <span class="vix-val" id="vixVal"></span>
+</div>
+
+
+<!-- MACRO BAR (Nasdaq) -->
+<div class="macro-bar" id="nasdaqMacroBar" style="display:none">
+  <div class="mc-item"><div class="mc-val" id="nm-vix">—</div><div class="mc-lbl">VIX</div></div>
+  <div class="mc-div"></div>
+  <div class="mc-item"><div class="mc-val" id="nm-spy">—</div><div class="mc-lbl">SPY 24h</div></div>
+  <div class="mc-div"></div>
+  <div class="mc-item"><div class="mc-val" id="nm-qqq">—</div><div class="mc-lbl">QQQ 24h</div></div>
+  <div class="mc-div"></div>
+  <div class="mc-item"><div class="mc-val" id="nm-dxy">—</div><div class="mc-lbl">DXY</div></div>
+  <div class="mc-div"></div>
+  <div class="mc-item"><div class="mc-val" id="nm-tnx">—</div><div class="mc-lbl">10Y Yield</div></div>
+</div>
+
+<!-- CONTROL PANEL -->
+<div class="control-panel">
+  <div class="cp-title">Configurare Scanner</div>
+  <div class="cp-grid">
+    <div class="cp-field">
+      <label>Top N acțiuni (volum)</label>
+      <select class="cp-inp" id="topN">
+        <option value="15">15 acțiuni</option>
+        <option value="30" selected>30 acțiuni</option>
+        <option value="50">50 acțiuni</option>
+        <option value="80">80 acțiuni</option>
+      </select>
+    </div>
+    <div class="cp-field">
+      <label>Interval scanare</label>
+      <select class="cp-inp" id="scanInterval">
+        <option value="60">1 minut</option>
+        <option value="120" selected>2 minute</option>
+        <option value="300">5 minute</option>
+        <option value="600">10 minute</option>
+      </select>
+    </div>
+    <div class="cp-field">
+      <label>Piață</label>
+      <select class="cp-inp" id="marketList">
+        <option value="nasdaq500" selected>US Tech & Growth 500</option>
+        <option value="nasdaq100">Nasdaq 100</option>
+        <option value="tech">Mega-Cap Tech</option>
+        <option value="growth">Growth / AI</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- API KEY -->
+  <div style="background:var(--accl);border:1px solid var(--accb);border-radius:var(--rs);padding:10px 13px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:.58rem;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">🔑 Finnhub API Key (gratuit)</div>
+      <input class="cp-inp" id="apiKeyInp" type="password" placeholder="Introdu cheia API Finnhub..." oninput="saveApiKey()" style="background:var(--bg2);">
+    </div>
+    <div style="font-size:.6rem;color:var(--t2);line-height:1.5;">
+      Cheie gratuită la <a href="https://finnhub.io/register" target="_blank" style="color:var(--acc);font-weight:700;">finnhub.io/register</a><br>
+      <span style="color:var(--t3);">60 calluri/min · fără card · CORS nativ</span>
+    </div>
+  </div>
+
+  <div style="font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⭐ Watchlist personal (scanat mereu)</div>
+  <div class="watchlist-wrap">
+    <div class="wl-chips" id="wlChips"></div>
+    <div class="wl-add">
+      <input class="wl-inp" id="wlInp" placeholder="AAPL, NVDA..." maxlength="6"
+        onkeydown="if(event.key==='Enter')addToWatchlist()">
+      <button class="wl-btn" onclick="addToWatchlist()">+ Adaugă</button>
+    </div>
+  </div>
+
+  <div style="font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Tipuri semnale active</div>
+  <div class="signal-toggles">
+    <div class="sig-tog on c-green" id="tog-pump" onclick="toggleSig('pump',this)"><div class="tog-dot"></div>📈 Rally puternic</div>
+    <div class="sig-tog on c-red" id="tog-dump" onclick="toggleSig('dump',this)"><div class="tog-dot"></div>📉 Scădere bruscă</div>
+    <div class="sig-tog on c-gold" id="tog-volatility" onclick="toggleSig('volatility',this)"><div class="tog-dot"></div>⚡ Volatilitate intraday</div>
+    <div class="sig-tog on c-green" id="tog-rsi-low" onclick="toggleSig('rsi-low',this)"><div class="tog-dot"></div>📊 RSI Oversold</div>
+    <div class="sig-tog on c-orange" id="tog-rsi-high" onclick="toggleSig('rsi-high',this)"><div class="tog-dot"></div>📊 RSI Overbought</div>
+    <div class="sig-tog on c-purple" id="tog-volume" onclick="toggleSig('volume',this)"><div class="tog-dot"></div>📦 Volum anormal</div>
+    <div class="sig-tog on c-teal" id="tog-swing" onclick="toggleSig('swing',this)"><div class="tog-dot"></div>🎯 Swing Setup</div>
+    <div class="sig-tog on" id="tog-breakout" onclick="toggleSig('breakout',this)"><div class="tog-dot"></div>💥 Breakout range</div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <button class="btn-start" id="btnStart" onclick="startScanner()">▶ Pornește Scanner</button>
+    <button class="btn-stop" id="btnStop" onclick="stopScanner()" style="display:none">■ Oprește</button>
+    <span id="nextScanTxt" style="font-size:.62rem;color:var(--t3)"></span>
+  </div>
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat s-acc"><div class="stat-val" id="st-scanned" style="color:var(--acc)">0</div><div class="stat-lbl">Scanate</div></div>
+  <div class="stat s-green"><div class="stat-val" id="st-signals" style="color:var(--green)">0</div><div class="stat-lbl">Semnale</div></div>
+  <div class="stat s-red"><div class="stat-val" id="st-alerts" style="color:var(--red)">0</div><div class="stat-lbl">Alerte</div></div>
+  <div class="stat s-gold"><div class="stat-val" id="st-scans" style="color:var(--gold)">0</div><div class="stat-lbl">Scanări</div></div>
+  <div class="stat s-teal"><div class="stat-val" id="st-top" style="color:var(--teal)">—</div><div class="stat-lbl">Top semnal</div></div>
+</div>
+
+<!-- FILTER -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="searchInp" placeholder="Caută ticker (AAPL, NVDA...)" oninput="renderSignals()">
+  </div>
+  <div class="ftag act" onclick="setFilter('all',this)">Toate</div>
+  <div class="ftag" onclick="setFilter('pump',this)">📈 Rally</div>
+  <div class="ftag" onclick="setFilter('dump',this)">📉 Scădere</div>
+  <div class="ftag" onclick="setFilter('swing',this)">🎯 Swing</div>
+  <div class="ftag" onclick="setFilter('rsi',this)">📊 RSI</div>
+  <div class="ftag" onclick="setFilter('high',this)">🔴 Prioritate</div>
+  <div class="ftag" onclick="exportSignals()" style="background:var(--accl);border-color:var(--accb);color:var(--acc)">📤 Export</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab act" onclick="setTab('live',this)">🔴 Live</div>
+  <div class="tab" onclick="setTab('all',this)">📋 Toate</div>
+  <div class="tab" onclick="setTab('reco',this)">💡 Oportunități</div>
+  <div class="tab" onclick="setTab('heatmap',this)">🗺️ Heatmap</div>
+  <div class="tab" onclick="setTab('swing',this)">🎯 Swing</div>
+  <div class="tab" onclick="setTab('history',this)">📜 Istoric</div>
+</div>
+
+<!-- SIGNALS -->
+<div id="signalsContainer"></div>
+
+<!-- LOG -->
+<div class="log-panel">
+  <div class="log-hdr">
+    <span>📡 Log scanner</span>
+    <button class="log-clear" onclick="clearLog()">Șterge log</button>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── CONSTANTS ──
+const FINNHUB = 'https://finnhub.io/api/v1';
+
+const NASDAQ500 = [
+  // ── Nasdaq 100 Core ──
+  'AAPL','MSFT','NVDA','AMZN','GOOGL','GOOG','META','TSLA','AVGO','COST',
+  'NFLX','AMD','ADBE','QCOM','CSCO','INTU','AMAT','ISRG','TXN','AMGN',
+  'REGN','VRTX','PANW','KLAC','LRCX','ADI','SNPS','CDNS','CRWD','MELI',
+  'ORLY','PCAR','MRVL','FTNT','ABNB','WDAY','CTAS','MNST','MAR','PAYX',
+  'ROST','CPRT','NXPI','ODFL','FAST','DXCM','ADSK','LULU','EA','BIIB',
+  'TEAM','IDXX','CTSH','ANSS','ZS','ON','MDB','CEG','ILMN','SMCI',
+  'ARM','GEHC','KDP','AEP','EXC','VRSK','DLTR','PYPL','SBUX','PEP',
+  'GILD','CSX','BKNG','ASML','HON','LIN','MDLZ','FANG','WBD','SIRI',
+  'RIVN','LCID','TMUS','CMCSA','INTC','MCHP','SWKS','QRVO','ALGN','TTWO',
+  'POOL','FIVE','ULTA','EXPE','ZBRA','CHKP','SPLK','MTCH',
+  // ── Large Cap Tech / Software ──
+  'CRM','NOW','SNOW','PLTR','UBER','DASH','COIN','HOOD','SOFI','AFRM',
+  'UPST','TTD','ROKU','ZM','DOCU','DDOG','NET','CFLT','OKTA','GTLB',
+  'HUBS','PCTY','PAYC','SMAR','TENB','QLYS','CYBR','ASAN','ZI','BRZE',
+  'IOT','RBRK','RDDT','S','APP','DUOL','CELH','HIMS',
+  'BILL','VEEV','CDAY','APPF','WEX','PCOR','AZPN','MANH','SPSC',
+  'QTWO','PEGA','PRGS','NCNO','EVBG','OLO','JAMF','FROG','ESTC',
+  // ── Semiconductori Extinsi ──
+  'MPWR','ENTG','WOLF','AMBA','ACLS','ALGM','FORM','AZTA','RMBS',
+  'SLAB','SITM','POWI','DIOD','AOSL','MTSI','AEIS','OLED','OSIS',
+  'PI','NTGR','ATEN','RBBN','VIAV','CIEN','INFN','KEYS','COHU',
+  'UCTT','ICHR','ONTO','MKSI','NOVT','LITE','AAOI',
+  // ── Biotech / Farma ──
+  'MRNA','BNTX','EXAS','NTRA','BEAM','EDIT','CRSP','NTLA','ALNY',
+  'SRPT','BMRN','IONS','ARWR','ACAD','PTCT','NBIX','HALO','MEDP',
+  'NVCR','INMD','IRTC','MASI','MMSI','RXRX','RARE','UTHR','JAZZ',
+  'ALKS','FOLD','RGEN','AGEN','ARDX','ARQT','ASMB','ATRC',
+  'ADMA','ADUS','AGIO','AKRX','ARVN','RVMD','PRTA','MGNX',
+  'KRTX','IMVT','INSM','ITCI','KYMR','LEGN','MIRM','NRIX','PCVX',
+  'RAPT','RCKT','REPL','ROIV','SANA','SEER','TGTX','TWST',
+  // ── Cloud / Cybersecurity / AI ──
+  'VRNS','SAIL','SEMR','AMPL','FRSH','RELY','SUMO','MNDY','YEXT',
+  'AI','BBAI','SOUN','IREN','CORZ','HUT','MARA','RIOT',
+  // ── Fintech / Plăți ──
+  'SQ','LC','PFSI','UWMC','TREE','COOP','LPLA','SSNC','SEIC',
+  'MKTX','NDAQ','CBOE','MORN','ALIT','PAYA','FLYW','EVTC',
+  'CURO','ENVA','WRLD','QFIN',
+  // ── E-commerce / Consumer ──
+  'ETSY','CHWY','W','OSTK','PETS','BARK','GOOS','AEO','EXPR',
+  'OLLI','BOOT','HIBB','VERY','LAZR','LIDR',
+  // ── Energie Curată / EV ──
+  'PLUG','FCEL','BLNK','CHPT','EVGO','STEM','ARRY','SHLS','NOVA',
+  'ENPH','SEDG','RUN','SPWR','MAXN','CSIQ','FLNC','BLDP','HYLN',
+  'ACHR','JOBY','RKLB','ASTS','SPCE','LUNR','RDW','ASTR',
+  // ── Media / Gaming ──
+  'U','NWSA','FOXA','IAC','BMBL','SNAP','PINS','MGNI','PUBM',
+  'ZNGA','RBLX','SKLZ','HUYA','IQ','BILI','TME',
+  // ── Healthcare Tech / Medtech ──
+  'OMCL','NEOG','PDCO','PRGO','HOLX','TNDM','AXNX','SRDX','TELA',
+  'SIBN','INSP','SWAV','AORT','ICAD','GKOS',
+  // ── Industrial / Logistică ──
+  'SAIA','JBHT','WERN','HTLD','EXPO','UFPI','KFRC','NDSN',
+  // ── Telecom / Rețele ──
+  'CCOI','SHEN','LBRDA','LBRDK','IRDM','GSAT',
+  // ── Auto / EV Extins ──
+  'XPEV','NIO','LI','FSR','NKLA','GOEV','BLBD','IDEX','WKHS',
+  // ── REIT / Imobiliare ──
+  'EQIX','GLPI','EPRT','IIPR','STAG','COLD','UNIT',
+  // ── Bănci / Financiar (Nasdaq) ──
+  'BOKF','UMBF','GBCI','CVBF','WAFD','FFIN','HTLF','BANF',
+  'INDB','WSBC','PFBC','SRCE','CBTX','NBTB','FBNC','FCNCA',
+  // ── Retail / Food & Beverage ──
+  'WING','SHAK','TXRH','DNUT','BROS','CAVA','TAST','JACK',
+  // ── Misc High-Growth ──
+  'OPEN','NRDY','TRUP','PRFT','GOCO','MAPS',
+];
+
+// Liste specifice (subseturi)
+const NASDAQ100 = NASDAQ500.slice(0,100);
+const MEGA_TECH = ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','AMD','NFLX','ADBE','QCOM','INTU','AMAT','ISRG','CRM','NOW','SNOW','PLTR'];
+const GROWTH_AI = ['NVDA','AMD','SMCI','ARM','CRWD','PANW','ZS','MDB','TEAM','WDAY','MELI','ABNB','ADSK','ANSS','FTNT','CDNS','SNPS','DDOG','NET','CFLT','OKTA','TTD','APP','PLTR','AI','SOUN','BBAI','IOT','BRZE'];
+
+const SECTORS = {
+  AAPL:'Tech',MSFT:'Tech',NVDA:'Semiconductori',AMZN:'E-Commerce',GOOGL:'Internet',META:'Social Media',
+  TSLA:'Auto EV',AVGO:'Semiconductori',COST:'Retail',NFLX:'Streaming',AMD:'Semiconductori',
+  ADBE:'Software',QCOM:'Semiconductori',CSCO:'Networking',INTU:'Fintech',AMAT:'Semiconductori',
+  ISRG:'Medtech',TXN:'Semiconductori',AMGN:'Biotech',REGN:'Biotech',VRTX:'Biotech',
+  PANW:'Cybersec',KLAC:'Semiconductori',LRCX:'Semiconductori',ADI:'Semiconductori',
+  SNPS:'EDA Software',CDNS:'EDA Software',CRWD:'Cybersec',MELI:'E-Commerce',
+  ORLY:'Auto Parts',PCAR:'Trucking',MRVL:'Semiconductori',FTNT:'Cybersec',ABNB:'Travel',
+  WDAY:'HR Software',CTAS:'Servicii',MAR:'Hospitality',PAYX:'HR Tech',ROST:'Retail',
+  CPRT:'Auto',NXPI:'Semiconductori',ODFL:'Logistică',FAST:'Distribuție',
+  DXCM:'Medtech',ADSK:'CAD Software',LULU:'Retail',EA:'Gaming',BIIB:'Biotech',
+  TEAM:'DevOps',IDXX:'Medtech',CTSH:'IT Services',ANSS:'Simulare',ZS:'Cybersec',
+  ON:'Semiconductori',MDB:'Database',CEG:'Energie',ILMN:'Genomică',SMCI:'Servere AI',
+  ARM:'Chip Design',GEHC:'Medtech',KDP:'FMCG',AEP:'Utilități',EXC:'Utilități',
+  VRSK:'Analitics',DLTR:'Retail',PYPL:'Fintech',SBUX:'FMCG',PEP:'FMCG',
+  GILD:'Biotech',CSX:'Transport',BKNG:'Travel',ASML:'Semiconductori',HON:'Industrie',
+  LIN:'Chimie',MDLZ:'FMCG',FANG:'Energie',WBD:'Media',SIRI:'Media',RIVN:'Auto EV',
+};
+
+// ── STATE ──
+let running=false, scanTimer=null, cdTimer=null, cdSec=0;
+let totalScans=0, totalAlerts=0;
+let allSignals=[], historySignals=[];
+let prevPrices={}, prevVolumes={}, rsiCache={};
+let earningsSet=new Set(); // symbols cu earnings în 7 zile
+let sparklineCache={};
+let watchlist=[];
+let rotationIdx=0;
+let allOpportunities=[];
+let newsCache={}; // symbol -> [{headline,url,source,datetime,sentiment}]
+let newsCacheTime={}; // symbol -> timestamp
+let priceAlerts={}; // symbol -> {target,dir,setPrice}
+let lastQuotesData=[]; // pentru heatmap + alerts
+let currentTab='live', currentFilter='all';
+let activeSigs=new Set(['pump','dump','volatility','rsi-low','rsi-high','volume','swing','breakout']);
+let audioCtx=null;
+
+// API key management
+function getApiKey(){ return localStorage.getItem('fh_key')||document.getElementById('apiKeyInp').value.trim(); }
+function saveApiKey(){
+  const v=(document.getElementById('apiKeyInp')||{value:''}).value.trim();
+  if(v) localStorage.setItem('fh_key',v); // NU suprascrie cu string gol!
+}
+// Restaurează cheia din localStorage la încărcare
+// Restaurare directă (DOM gata când scriptul rulează)
+(function(){
+  const k=localStorage.getItem('fh_key');
+  const inp=document.getElementById('apiKeyInp');
+  if(k&&inp) inp.value=k;
+  try{watchlist=JSON.parse(localStorage.getItem('wl_stocks')||'[]');}catch(e){watchlist=[];}
+  try{priceAlerts=JSON.parse(localStorage.getItem('price_alerts')||'{}');}catch(e){priceAlerts={};}
+  renderWatchlistChips();
+})();
+
+document.addEventListener('click',()=>{if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}},{once:true});
+
+// ── PWA: manifest inline + install prompt ──
+(function(){
+  // Generează manifest dinamic (no external files needed)
+  const mf = {
+    name:'Nasdaq Scanner', short_name:'Nasdaq',
+    start_url: location.href.split('?')[0],
+    display:'standalone', background_color:'#f4f6ff', theme_color:'#2563eb',
+    icons:[{
+      src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232563eb'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='55'%3E📊%3C/text%3E%3C/svg%3E",
+      sizes:'192x192', type:'image/svg+xml'
+    }]
+  };
+  const ml = document.createElement('link');
+  ml.rel = 'manifest';
+  ml.href = URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));
+  document.head.appendChild(ml);
+
+  // Install prompt (apare automat în Chrome când e pe HTTPS/GitHub Pages)
+  let _pe = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _pe = e;
+    const b = document.getElementById('pwaInstallBtn');
+    if(b){ b.style.display='flex'; b.style.alignItems='center'; b.style.gap='5px'; }
+  });
+  window.addEventListener('appinstalled', () => {
+    _pe = null;
+    const b = document.getElementById('pwaInstallBtn');
+    if(b) b.style.display='none';
+    showToast('✅ Aplicație instalată pe ecranul principal!','ok');
+  });
+  window.installPWA = function(){
+    if(!_pe){ showToast('⚠️ Necesită HTTPS (GitHub Pages) pentru instalare.','err'); return; }
+    _pe.prompt();
+    _pe.userChoice.then(r => {
+      if(r.outcome === 'accepted') showToast('✅ Se instalează...','ok');
+      _pe = null;
+    });
+  };
+})();
+
+
+// ── MACRO CONTEXT (Nasdaq) ──
+async function fetchNasdaqMacro(){
+  const key=getApiKey();
+  if(!key) return;
+  const symbols=['^VIX','SPY','QQQ','UUP','^TNX'];
+  const ids=['nm-vix','nm-spy','nm-qqq','nm-dxy','nm-tnx'];
+  const bar=document.getElementById('nasdaqMacroBar');
+  if(bar) bar.style.display='flex';
+  for(let i=0;i<symbols.length;i++){
+    try{
+      const d=await fhGet(`${FINNHUB}/quote?symbol=${encodeURIComponent(symbols[i])}&token=${key}`);
+      if(!d||!d.c) continue;
+      const el=document.getElementById(ids[i]);
+      if(!el) continue;
+      const chg=((d.c-d.pc)/d.pc*100);
+      if(symbols[i]==='^VIX'||symbols[i]==='^TNX'){
+        el.textContent=d.c.toFixed(2);
+        el.style.color=symbols[i]==='^VIX'?(d.c>25?'var(--red)':d.c>18?'var(--gold)':'var(--green)'):'var(--t2)';
+      }else{
+        el.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+        el.style.color=chg>=0?'var(--green)':'var(--red)';
+      }
+      await sleep(120);
+    }catch(e){}
+  }
+}
+
+// ── INIT ──
+updateNotifBtn();
+updateMarketStatus();
+setInterval(updateMarketStatus,60000);
+log('Scanner Nasdaq inițializat. Apasă ▶ Pornește.','info');
+renderSignals();
+
+// ── MARKET HOURS (ET) ──
+function getMarketStatus(){
+  const now=new Date();
+  const et=new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));
+  const day=et.getDay();
+  const h=et.getHours(), m=et.getMinutes();
+  const mins=h*60+m;
+  if(day===0||day===6) return{status:'closed',label:'WEEKEND — Închis'};
+  if(mins>=570&&mins<960) return{status:'open',label:`DESCHIS · ${formatET(et)}`};
+  if(mins>=240&&mins<570) return{status:'pre',label:`PRE-MARKET · ${formatET(et)}`};
+  if(mins>=960&&mins<1200) return{status:'pre',label:`AFTER-HOURS · ${formatET(et)}`};
+  return{status:'closed',label:`ÎNCHIS · Deschide 9:30 ET`};
+}
+function formatET(d){return d.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});}
+function updateMarketStatus(){
+  const ms=getMarketStatus();
+  const mdot=document.getElementById('mdot');
+  const txt=document.getElementById('marketStatusTxt');
+  const banner=document.getElementById('marketBanner');
+  const bannerTxt=document.getElementById('marketBannerTxt');
+  mdot.className='mdot '+ms.status;
+  txt.textContent=ms.label;
+  banner.className='market-banner '+ms.status;
+  const icons={open:'🟢',pre:'🟡',closed:'🔴'};
+  const msgs={
+    open:'Piața este DESCHISĂ — datele sunt în timp real. Ideal pentru semnale intraday.',
+    pre:'PRE-MARKET sau AFTER-HOURS — volatilitate redusă, spread-uri mari. Semnalele sunt informative.',
+    closed:'Piața este ÎNCHISĂ. Datele reflectă închiderea zilei. Planifică tranzacțiile pentru mâine.'
+  };
+  bannerTxt.textContent=`${icons[ms.status]} ${msgs[ms.status]}`;
+}
+
+// ── NOTIFICATIONS ──
+function updateNotifBtn(){
+  const b=document.getElementById('notifBtn');
+  if(!('Notification' in window)){b.textContent='🔕 N/A';b.className='notif-btn denied';return;}
+  if(Notification.permission==='granted'){b.textContent='🔔 Active';b.className='notif-btn granted';}
+  else if(Notification.permission==='denied'){b.textContent='🚫 Blocate';b.className='notif-btn denied';}
+}
+async function requestNotif(){
+  if(!('Notification' in window)||Notification.permission!=='default')return;
+  await Notification.requestPermission();updateNotifBtn();
+}
+function sendNotif(title,body){
+  if(Notification.permission==='granted')
+    try{new Notification('📊 '+title,{body});}catch(e){}
+}
+
+// ── SIGNAL TOGGLES ──
+function toggleSig(key,el){
+  if(activeSigs.has(key)){activeSigs.delete(key);el.classList.remove('on','c-green','c-red','c-gold','c-purple','c-teal','c-orange');}
+  else{activeSigs.add(key);const base=el.className.replace(' on','').replace(/c-\w+/g,'').trim();el.className=base+' on';}
+}
+
+// ── SCANNER CONTROL ──
+async function startScanner(){
+  if(running)return;
+  running=true;
+  document.getElementById('btnStart').style.display='none';
+  document.getElementById('btnStop').style.display='inline-block';
+  document.getElementById('sdot').className='mdot scanning';
+  document.getElementById('statusTxt').textContent='SCANARE...';
+  document.getElementById('progressBar').classList.add('show');
+  log('▶ Scanner Nasdaq pornit!','ok');
+  await runScan();
+}
+function stopScanner(){
+  running=false;clearTimeout(scanTimer);clearInterval(cdTimer);
+  document.getElementById('btnStart').style.display='inline-block';
+  document.getElementById('btnStop').style.display='none';
+  document.getElementById('sdot').className='mdot';
+  document.getElementById('statusTxt').textContent='OPRIT';
+  document.getElementById('progressBar').classList.remove('show');
+  document.getElementById('nextScanTxt').textContent='';
+  log('■ Scanner oprit.','warn');
+}
+function startCountdown(){
+  clearInterval(cdTimer);
+  const secs=parseInt(document.getElementById('scanInterval').value)||120;
+  cdSec=secs;
+  document.getElementById('nextScanTxt').textContent=`Următor scan: ${cdSec}s`;
+  cdTimer=setInterval(()=>{
+    cdSec--;
+    document.getElementById('nextScanTxt').textContent=`Următor scan: ${cdSec}s`;
+    if(cdSec<=0){clearInterval(cdTimer);if(running)runScan();}
+  },1000);
+}
+
+// ── FETCH HELPERS (Finnhub — CORS nativ, fără proxy) ──
+
+// Timeout manual — compatibil cu toate browserele inclusiv Android
+function fetchTimeout(url, ms=7000){
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),ms);
+  return fetch(url,{signal:ctrl.signal}).finally(()=>clearTimeout(t));
+}
+
+async function fhGet(url){
+  const res=await fetchTimeout(url,7000);
+  if(res.status===429) throw new Error('Rate limit (429)');
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
+
+async function fhQuote(symbol,key){
+  const d=await fhGet(`${FINNHUB}/quote?symbol=${symbol}&token=${key}`);
+  if(!d||d.c===null||d.c===0) throw new Error('Date invalide');
+  return d;
+}
+
+async function fhCandles(symbol,key){
+  const to=Math.floor(Date.now()/1000);
+  const from=to-8*3600;
+  const d=await fhGet(`${FINNHUB}/stock/candle?symbol=${symbol}&resolution=15&from=${from}&to=${to}&token=${key}`);
+  if(!d||d.s!=='ok') return [];
+  return d.c||[];
+}
+
+// Fetch DOAR quotes mai întâi (1 call/stock) — rapid, fără rate limit
+async function fetchAllQuotes(symbols, key, onProgress){
+  const results=[];
+  for(let i=0;i<symbols.length;i++){
+    if(!running) break;
+    try{
+      const d=await fhQuote(symbols[i],key);
+      results.push({symbol:symbols[i], q:d});
+    }catch(e){
+      if(e.message.includes('429')){
+        log('⏳ Rate limit — aștept 10s...','warn');
+        await sleep(10000);
+        try{
+          const d=await fhQuote(symbols[i],key);
+          results.push({symbol:symbols[i], q:d});
+        }catch(e2){ log(`⚠️ Skip ${symbols[i]}: ${e2.message}`,'warn'); }
+      } else {
+        log(`⚠️ ${symbols[i]}: ${e.message}`,'warn');
+      }
+    }
+    if(onProgress) onProgress(i+1,symbols.length,symbols[i]);
+    await sleep(120); // ~8 stocks/sec = 480/min well under 60/min per endpoint
+  }
+  return results;
+}
+
+// ── EARNINGS CALENDAR ──
+async function fetchEarnings(key){
+  try{
+    const today=new Date();
+    const from=today.toISOString().slice(0,10);
+    const toD=new Date(today); toD.setDate(toD.getDate()+7);
+    const to=toD.toISOString().slice(0,10);
+    const d=await fhGet(`${FINNHUB}/calendar/earnings?from=${from}&to=${to}&token=${key}`);
+    earningsSet=new Set((d.earningsCalendar||[]).map(e=>e.symbol));
+    log(`📅 Earnings în 7 zile: ${earningsSet.size} stocks`,earningsSet.size>0?'warn':'ok');
+  }catch(e){ log('⚠️ Earnings: '+e.message,'warn'); }
+}
+
+// ── VIX / MARKET SENTIMENT ──
+async function fetchVIX(key){
+  try{
+    const d=await fhGet(`${FINNHUB}/quote?symbol=^VIX&token=${key}`);
+    if(!d||!d.c) return;
+    const vix=d.c;
+    const score=Math.max(0,Math.min(100,Math.round(100-(vix-10)/30*100)));
+    renderSentiment(score,vix);
+  }catch(e){ log('⚠️ VIX: '+e.message,'warn'); }
+}
+function renderSentiment(score,vix){
+  document.getElementById('sentimentBar').style.display='flex';
+  document.getElementById('sentNeedle').style.left=score+'%';
+  document.getElementById('sentVal').textContent=score;
+  document.getElementById('vixVal').textContent=`VIX ${vix.toFixed(2)}`;
+  let cls,txt;
+  if(score>=75){cls='sent-extreme-greed';txt='Lăcomie extremă';}
+  else if(score>=55){cls='sent-greed';txt='Lăcomie';}
+  else if(score>=45){cls='sent-neutral';txt='Neutru';}
+  else if(score>=25){cls='sent-fear';txt='Frică';}
+  else{cls='sent-extreme-fear';txt='Frică extremă';}
+  const el=document.getElementById('sentTxt');
+  el.className='sent-txt '+cls;
+  el.textContent=txt;
+  document.getElementById('sentVal').style.color=score>=55?'var(--green)':score>=45?'var(--gold)':'var(--red)';
+}
+
+// ── SPARKLINES (7 zile daily) ──
+async function fetchSparklines(symbols, key){
+  const to=Math.floor(Date.now()/1000);
+  const from=to-8*24*3600;
+  for(const sym of symbols){
+    if(!running) break;
+    if(sparklineCache[sym]) continue;
+    try{
+      const d=await fhGet(`${FINNHUB}/stock/candle?symbol=${sym}&resolution=D&from=${from}&to=${to}&token=${key}`);
+      if(d?.s==='ok'&&d.c?.length>=2) sparklineCache[sym]=d.c;
+    }catch(e){}
+    await sleep(130);
+  }
+}
+function renderSparkline(sym){
+  const prices=sparklineCache[sym];
+  if(!prices||prices.length<2) return '';
+  const W=84,H=28;
+  const min=Math.min(...prices),max=Math.max(...prices),range=max-min||1;
+  const pts=prices.map((p,i)=>`${((i/(prices.length-1))*W).toFixed(1)},${(H-((p-min)/range)*(H-3)-1).toFixed(1)}`).join(' ');
+  const isUp=prices[prices.length-1]>=prices[0];
+  const clr=isUp?'var(--green)':'var(--red)';
+  const chgPct=((prices[prices.length-1]-prices[0])/prices[0]*100);
+  return`<div class="sparkline-wrap">
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;border-radius:4px;background:var(--bg3)">
+      <polyline points="${pts}" fill="none" stroke="${clr}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+    <span class="spark-chg ${isUp?'up':'down'}">${chgPct>=0?'+':''}${chgPct.toFixed(1)}% 7z</span>
+  </div>`;
+}
+
+// ── NEWS FETCH ──
+async function fetchNewsForSymbol(symbol, key){
+  const now=Date.now();
+  if(newsCache[symbol]&&(now-newsCacheTime[symbol])<600000) return; // cache 10 min
+  try{
+    const to=new Date().toISOString().slice(0,10);
+    const from=new Date(now-5*86400000).toISOString().slice(0,10);
+    const d=await fhGet(`${FINNHUB}/company-news?symbol=${symbol}&from=${from}&to=${to}&token=${key}`);
+    if(Array.isArray(d)&&d.length){
+      newsCache[symbol]=d.slice(0,3).map(n=>({
+        headline:n.headline,
+        url:n.url,
+        source:n.source,
+        dt:new Date(n.datetime*1000).toLocaleDateString('ro-RO',{day:'numeric',month:'short'}),
+        sentiment:n.sentiment||0,
+      }));
+      newsCacheTime[symbol]=now;
+    }
+  }catch(e){}
+}
+
+async function loadNewsForVisible(key){
+  const visible=allOpportunities.filter(o=>o.score>=55).slice(0,6).map(o=>o.symbol);
+  for(const sym of visible){
+    if(!running) break;
+    await fetchNewsForSymbol(sym,key);
+    await sleep(130);
+  }
+}
+
+function renderNewsSection(symbol){
+  const news=newsCache[symbol];
+  if(!news||!news.length) return `<div class="news-section"><div class="news-title">📰 Știri recente</div><div class="news-loading">Se încarcă știrile...</div></div>`;
+  const items=news.map(n=>{
+    const sc=n.sentiment>0.1?'pos':n.sentiment<-0.1?'neg':'neu';
+    const st=n.sentiment>0.1?'Pozitiv':n.sentiment<-0.1?'Negativ':'Neutru';
+    return`<div class="news-item">
+      <div class="news-headline"><a href="${n.url}" target="_blank" rel="noopener">${n.headline}</a></div>
+      <div class="news-meta"><span>${n.source}</span><span>${n.dt}</span><span class="news-sentiment ns-${sc}">${st}</span></div>
+    </div>`;
+  }).join('');
+  return`<div class="news-section"><div class="news-title">📰 Știri recente</div>${items}</div>`;
+}
+
+// ── PRICE ALERTS ──
+function savePriceAlert(symbol, targetStr, currentPrice){
+  const target=parseFloat(targetStr);
+  if(!target||isNaN(target)||target<=0){ showToast('Preț invalid','err'); return; }
+  priceAlerts[symbol]={target, dir: target>currentPrice?'above':'below', setPrice:currentPrice};
+  localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
+  renderSignals();
+  showToast(`⏰ Alert setat: ${symbol} @ $${target.toFixed(2)}`,'ok');
+  playSound('grid');
+}
+
+function removePriceAlert(symbol){
+  delete priceAlerts[symbol];
+  localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
+  renderSignals();
+  showToast(`Alert ${symbol} eliminat`,'ok');
+}
+
+function checkPriceAlerts(quotesData){
+  let triggered=0;
+  for(const {symbol,q} of quotesData){
+    const al=priceAlerts[symbol];
+    if(!al||!q.c) continue;
+    const hit=(al.dir==='above'&&q.c>=al.target)||(al.dir==='below'&&q.c<=al.target);
+    if(hit){
+      sendNotif(`⏰ ALERT: ${symbol}`,`Prețul a atins $${q.c.toFixed(2)} (target: $${al.target.toFixed(2)})`);
+      playSound('breakout');
+      showToast(`⏰ ${symbol} a atins $${q.c.toFixed(2)}!`,'ok');
+      log(`⏰ ALERT DECLANȘAT: ${symbol} @ $${q.c.toFixed(2)} (target $${al.target.toFixed(2)})`,'ok');
+      delete priceAlerts[symbol];
+      localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
+      triggered++;
+    }
+  }
+  return triggered;
+}
+
+function renderAlertSection(symbol, currentPrice){
+  const al=priceAlerts[symbol];
+  if(al){
+    return`<div class="alert-section">
+      <div class="alert-active">
+        <span>⏰ Alert activ: <strong>$${al.target.toFixed(2)}</strong> (${al.dir==='above'?'↑ dacă crește':'↓ dacă scade'})</span>
+        <button onclick="removePriceAlert('${symbol}')">✕</button>
+      </div>
+    </div>`;
+  }
+  return`<div class="alert-section">
+    <div class="alert-row">
+      <span class="alert-lbl">⏰ Alert preț</span>
+      <input class="alert-inp" id="al_${symbol}" type="number" step="0.01" placeholder="Ex: ${(currentPrice*1.05).toFixed(2)}" min="0">
+      <button class="alert-btn" onclick="savePriceAlert('${symbol}',document.getElementById('al_${symbol}').value,${currentPrice})">Setează</button>
+    </div>
+  </div>`;
+}
+
+// ── HEATMAP ──
+function calcSectorData(quotesData){
+  const map={};
+  for(const {symbol,q} of quotesData){
+    if(!q.c||!q.pc) continue;
+    const sec=SECTORS[symbol]||'Altele';
+    const chg=(q.c-q.pc)/q.pc*100;
+    if(!map[sec]) map[sec]={chgs:[],stocks:[]};
+    map[sec].chgs.push(chg);
+    map[sec].stocks.push({sym:symbol,chg});
+  }
+  const result={};
+  for(const [sec,d] of Object.entries(map)){
+    const avg=d.chgs.reduce((a,b)=>a+b,0)/d.chgs.length;
+    const sorted=[...d.stocks].sort((a,b)=>b.chg-a.chg);
+    result[sec]={avg,count:d.stocks.length,best:sorted[0],worst:sorted[sorted.length-1]};
+  }
+  return result;
+}
+
+function heatmapColor(avg){
+  if(avg>=3) return{bg:'#065f46',text:'#fff'};
+  if(avg>=1.5) return{bg:'#059669',text:'#fff'};
+  if(avg>=0.3) return{bg:'#34d399',text:'#064e3b'};
+  if(avg>=-0.3) return{bg:'#94a3b8',text:'#fff'};
+  if(avg>=-1.5) return{bg:'#fca5a5',text:'#7f1d1d'};
+  if(avg>=-3) return{bg:'#ef4444',text:'#fff'};
+  return{bg:'#991b1b',text:'#fff'};
+}
+
+function renderHeatmap(){
+  const container=document.getElementById('signalsContainer');
+  if(!lastQuotesData.length){
+    container.innerHTML=`<div class="empty"><div class="empty-icon">🗺️</div><div class="empty-title">Nicio scanare</div><div class="empty-sub">Pornește scanner-ul pentru a genera heatmap-ul pe sectoare.</div></div>`;
+    return;
+  }
+  const data=calcSectorData(lastQuotesData);
+  const sectors=Object.entries(data).sort((a,b)=>b[1].avg-a[1].avg);
+  const avgOverall=sectors.reduce((s,[,d])=>s+d.avg,0)/sectors.length;
+
+  const tiles=sectors.map(([sec,d])=>{
+    const {bg,text}=heatmapColor(d.avg);
+    const sign=d.avg>=0?'+':'';
+    const bestStr=d.best?`${d.best.sym} ${d.best.chg>=0?'+':''}${d.best.chg.toFixed(1)}%`:'';
+    const worstStr=d.worst&&d.worst.sym!==d.best?.sym?`${d.worst.sym} ${d.worst.chg.toFixed(1)}%`:'';
+    return`<div class="hm-tile" style="background:${bg}">
+      <div class="hm-sector" style="color:${text}88">${sec}</div>
+      <div class="hm-chg" style="color:${text}">${sign}${d.avg.toFixed(2)}%</div>
+      <div class="hm-count" style="color:${text}99">${d.count} stocks</div>
+      ${bestStr?`<div class="hm-best"><span style="color:${text}">▲ ${bestStr}</span></div>`:''}
+      ${worstStr?`<div class="hm-best"><span style="color:${text}">▼ ${worstStr}</span></div>`:''}
+    </div>`;
+  }).join('');
+
+  const overallSign=avgOverall>=0?'+':'';
+  const overallClr=avgOverall>=0?'var(--green)':'var(--red)';
+  container.innerHTML=`<div class="heatmap-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="heatmap-title">🗺️ Heatmap Sectoare — Performanță Zi</div>
+      <div style="font-family:var(--head);font-weight:800;font-size:.9rem;color:${overallClr}">${overallSign}${avgOverall.toFixed(2)}% avg piață</div>
+    </div>
+    <div class="heatmap-grid">${tiles}</div>
+    <div style="font-size:.58rem;color:var(--t3);margin-top:10px;text-align:center;">
+      🟢 Verde intens = sector hot &nbsp;·&nbsp; 🔴 Roșu intens = sell-off &nbsp;·&nbsp; Actualizat la fiecare scan
+    </div>
+  </div>`;
+}
+
+// ── EXPORT SEMNALE ──
+function exportSignals(){
+  const buys=allOpportunities.filter(o=>o.isBuy&&o.score>=60).sort((a,b)=>b.score-a.score).slice(0,5);
+  const sells=allOpportunities.filter(o=>!o.isBuy&&o.score>=60).sort((a,b)=>b.score-a.score).slice(0,3);
+  if(!buys.length&&!sells.length&&!allSignals.length){
+    showToast('Nicio scanare de exportat','err'); return;
+  }
+  const now=new Date().toLocaleString('ro-RO');
+  let txt=`📊 NASDAQ SCANNER — ${now}\n${'─'.repeat(40)}\n`;
+
+  if(buys.length){
+    txt+=`\n🟢 TOP OPORTUNITĂȚI CUMPĂRARE:\n`;
+    buys.forEach((o,i)=>{
+      txt+=`${i+1}. ${o.symbol} (${SECTORS[o.symbol]||'US'}) — Scor ${o.score}/100\n`;
+      txt+=`   Preț: $${o.price.toFixed(2)} | Zi: ${o.chg24>=0?'+':''}${o.chg24.toFixed(2)}% | RSI: ${o.rsi.toFixed(0)}\n`;
+      txt+=`   Entry: $${o.entry.toFixed(2)} | TP: $${o.tp.toFixed(2)} | SL: $${o.sl.toFixed(2)} | R:R ${o.rr}:1\n`;
+      if(o.reasons[0]) txt+=`   → ${o.reasons[0].t}\n`;
+    });
+  }
+
+  if(sells.length){
+    txt+=`\n🔴 RISC / SHORT:\n`;
+    sells.forEach((o,i)=>{
+      txt+=`${i+1}. ${o.symbol} — Scor bearish ${o.score}/100\n`;
+      txt+=`   Preț: $${o.price.toFixed(2)} | Zi: ${o.chg24.toFixed(2)}% | RSI: ${o.rsi.toFixed(0)}\n`;
+    });
+  }
+
+  const topSig=allSignals.slice(0,3);
+  if(topSig.length){
+    txt+=`\n⚡ TOP SEMNALE ACTIVE:\n`;
+    topSig.forEach(s=>{txt+=`• ${s.coin} — ${s.title} (${s.strength}%)\n`;});
+  }
+
+  txt+=`\n${'─'.repeat(40)}\nGenerat de Nasdaq Scanner`;
+
+  navigator.clipboard.writeText(txt)
+    .then(()=>showToast('📋 Copiat în clipboard!','ok'))
+    .catch(()=>{ prompt('Copiază manual:',txt); });
+}
+
+// ── AI ANALYSIS ──
+const aiCache={}; // symbol -> analysis text
+
+function copyAiPrompt(btn){
+  const ta=document.getElementById('aiPromptTa');
+  if(!ta) return;
+  ta.focus(); ta.select(); ta.setSelectionRange(0,99999);
+  try{ document.execCommand('copy'); }catch(e){}
+  btn.textContent='✅ Copiat!';
+  btn.style.background='#059669';
+}
+
+function analyzeWithAI(symbol){
+  const opp=allOpportunities.find(o=>o.symbol===symbol)||{};
+  const sp=sparklineCache[symbol];
+  const w7=sp&&sp.length>=2?((sp[sp.length-1]-sp[0])/sp[0]*100).toFixed(1)+'%':'N/A';
+  const earn=(typeof earningsSet!=='undefined'&&earningsSet.has(symbol))?'DA':'Nu';
+  const reasons=(opp.reasons||[]).map(r=>r.t).join(', ')||'RSI='+((opp.rsi||50).toFixed(0))+', Chg='+((opp.chg24||0).toFixed(2))+'%';
+
+  const prompt='Ești analist financiar. Analizează '+symbol+' ('+
+    (SECTORS[symbol]||'US Equity')+') pentru un trader român.\n\n'+
+    'DATE TEHNICE:\n'+
+    '- Pret: $'+((opp.price||0).toFixed(2))+' | Zi: '+((opp.chg24||0)>=0?'+':'')+((opp.chg24||0).toFixed(2))+'%\n'+
+    '- RSI(14): '+((opp.rsi||50).toFixed(0))+' | Range: '+((opp.range24pct||0).toFixed(1))+'%\n'+
+    '- Trend 7 zile: '+w7+'\n'+
+    '- Earnings curand: '+earn+'\n'+
+    '- Scor: '+((opp.score||0))+'/100 ('+(opp.isBuy?'BULLISH':'BEARISH')+')\n'+
+    '- Factori: '+reasons+'\n\n'+
+    'Raspunde in romana: stare tehnica, scenariu 1-3 zile, actiune recomandata cu nivel $ specific, risc principal.';
+
+  // Copiere universala - merge pe orice browser/protocol
+  function copyText(txt){
+    const ta=document.createElement('textarea');
+    ta.value=txt;
+    ta.style.cssText='position:fixed;left:-9999px;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0,99999);
+    let ok=false;
+    try{ ok=document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  const copied=copyText(prompt);
+  if(copied){
+    showToast('✅ Prompt copiat! Deschide Claude.ai si lipeste.','ok');
+    setTimeout(()=>window.open('https://claude.ai/new','_blank'),800);
+  } else {
+    // Fallback vizual — textarea selectabila
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.onclick=function(e){if(e.target===ov)ov.remove();};
+    const box=document.createElement('div');
+    box.style.cssText='background:#fff;border-radius:14px;padding:18px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)';
+    box.innerHTML='<div style="font-family:Sora,sans-serif;font-weight:800;font-size:.9rem;margin-bottom:12px">🤖 Prompt pentru Claude.ai — '+symbol+'</div>'+
+      '<div style="font-size:.6rem;color:#64748b;margin-bottom:8px">Selecteaza tot (Ctrl+A) si copiaza (Ctrl+C), apoi lipeste in Claude.ai</div>'+
+      '<textarea id="aiPromptTa" style="width:100%;height:180px;font-size:.62rem;font-family:monospace;border:1px solid #dde2f5;border-radius:8px;padding:10px;resize:none">'+prompt+'</textarea>'+
+      '<div style="display:flex;gap:8px;margin-top:12px">'+
+      '<button onclick="copyAiPrompt(this)" style="flex:1;padding:9px;border-radius:8px;border:none;background:#2563eb;color:#fff;font-family:Sora,sans-serif;font-weight:700;font-size:.7rem;cursor:pointer">📋 Selectează și Copiază</button>'+
+      '<a href="https://claude.ai/new" target="_blank" style="flex:1;padding:9px;border-radius:8px;background:#0d9488;color:#fff;font-family:Sora,sans-serif;font-weight:700;font-size:.7rem;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center">🚀 Claude.ai</a>'+
+      '</div>';
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    setTimeout(()=>{
+      const ta=document.getElementById('aiPromptTa');
+      if(ta){ta.focus();ta.select();ta.setSelectionRange(0,99999);}
+    },100);
+  }
+}
+
+function renderAISection(symbol){
+  return `<button class="ai-btn" onclick="analyzeWithAI('${symbol}')">
+    🤖 Analizează cu Claude.ai
+  </button>`;
+}
+function renderWatchlistChips(){
+  const c=document.getElementById('wlChips');
+  if(!c) return;
+  c.innerHTML=watchlist.length
+    ? watchlist.map(s=>`<div class="wl-chip">⭐ ${s}<button onclick="removeFromWatchlist('${s}')">×</button></div>`).join('')
+    : '<span style="font-size:.58rem;color:var(--t3)">Gol — adaugă tickere mai sus</span>';
+}
+
+function addToWatchlist(){
+  const inp=document.getElementById('wlInp');
+  const sym=inp.value.trim().toUpperCase().replace(/[^A-Z]/g,'');
+  if(!sym||watchlist.includes(sym)){inp.value='';return;}
+  watchlist.push(sym); localStorage.setItem('wl_stocks',JSON.stringify(watchlist));
+  renderWatchlistChips(); inp.value='';
+  showToast(`⭐ ${sym} adăugat în watchlist`,'ok');
+}
+function removeFromWatchlist(sym){
+  watchlist=watchlist.filter(s=>s!==sym);
+  localStorage.setItem('wl_stocks',JSON.stringify(watchlist));
+  renderWatchlistChips();
+}
+
+// ── FETCH RSI CANDLES ──
+async function fetchCandlesForSignals(candidates, key){
+  const rsiMap={};
+  for(const sym of candidates){
+    if(!running) break;
+    try{
+      const closes=await fhCandles(sym,key);
+      const valid=closes.filter(c=>c!==null&&!isNaN(c));
+      if(valid.length>=15) rsiMap[sym]=calcRSI(valid,14);
+    }catch(e){
+      if(e.message.includes('429')){ await sleep(10000); }
+    }
+    await sleep(150);
+  }
+  return rsiMap;
+}
+
+// ── MAIN SCAN ──
+async function runScan(){
+  if(!running) return;
+
+  const key=getApiKey();
+  if(!key){
+    log('❌ Lipsă cheie API Finnhub!','err');
+    showToast('Introdu cheia API Finnhub!','err');
+    stopScanner();
+    document.getElementById('apiKeyInp').focus();
+    return;
+  }
+
+  document.getElementById('sdot').className='mdot scanning';
+  document.getElementById('statusTxt').textContent='SCANARE...';
+  setProgress(0);
+  log(`🔍 Scanare #${totalScans+1}...`,'info');
+
+  const marketList=document.getElementById('marketList').value;
+  const topN=parseInt(document.getElementById('topN').value)||30;
+  const fullList=marketList==='tech'?MEGA_TECH:marketList==='growth'?GROWTH_AI:marketList==='nasdaq100'?NASDAQ100:NASDAQ500;
+
+  // Rotație automată: ia un set diferit de topN la fiecare scan
+  const start=rotationIdx % fullList.length;
+  // Wrap-around: dacă ajunge la sfârșit, continuă de la început
+  let symbols=[];
+  for(let i=0;i<topN;i++){
+    symbols.push(fullList[(start+i)%fullList.length]);
+  }
+  rotationIdx=(rotationIdx+topN) % fullList.length;
+
+  const totalRounds=Math.ceil(fullList.length/topN);
+  const currentRound=Math.floor(start/topN)+1;
+  log(`🔄 Set ${currentRound}/${totalRounds} din ${fullList.length} acțiuni (${symbols[0]}→${symbols[symbols.length-1]})`,'info');
+
+  // Merge watchlist (fără duplicate)
+  const allSymbols=[...new Set([...watchlist,...symbols])];
+  log(`📋 ${allSymbols.length} acțiuni (${watchlist.length} din watchlist)`,'info');
+
+  // ── PRE-FETCH: Earnings + VIX (paralel, nu blochează scan-ul) ──
+  setProgress(5,'Fetch earnings + VIX...');
+  await Promise.allSettled([fetchEarnings(key), fetchVIX(key)]);
+  await sleep(300); // mini-pauză după 2 extra calluri
+
+  // ── FAZA 1: Quotes (1 call/stock, rapid) ──
+  log(`📡 Faza 1: Fetch quotes pentru ${allSymbols.length} acțiuni...`,'info');
+  setProgress(8,'Fetch quotes...');
+
+  const quotesData=await fetchAllQuotes(allSymbols, key,(done,total,sym)=>{
+    setProgress(5+(done/total*50), sym);
+    document.getElementById('st-scanned').textContent=done;
+  });
+
+  if(!quotesData.length){
+    log('❌ Nicio acțiune încărcată. Verifică cheia API.','err');
+    showToast('Eroare fetch. Cheie invalidă?','err');
+    document.getElementById('sdot').className='mdot';
+    document.getElementById('statusTxt').textContent='EROARE';
+    startCountdown(); return;
+  }
+  log(`✓ ${quotesData.length} quotes OK`,'ok');
+
+  // ── FAZA 2: Identifică candidați pentru RSI (pre-filtrare rapidă) ──
+  const rsiCandidates=[];
+  for(const {symbol,q} of quotesData){
+    const chg=(q.c-q.pc)/q.pc*100;
+    // Adaugă la RSI fetch dacă: schimbare semnificativă sau RSI cache expirat
+    if(Math.abs(chg)>=2||!rsiCache[symbol]||Math.random()<0.3)
+      rsiCandidates.push(symbol);
+  }
+  const rsiLimit=Math.min(rsiCandidates.length, 20); // max 20 candle-calluri per scan
+  const rsiSymbols=rsiCandidates.slice(0,rsiLimit);
+
+  log(`📊 Faza 2: RSI pentru ${rsiSymbols.length} candidați...`,'info');
+  setProgress(57,'Fetch RSI...');
+  const rsiMap=await fetchCandlesForSignals(rsiSymbols, key);
+  // Actualizează cache-ul
+  Object.assign(rsiCache, rsiMap);
+  setProgress(75,'Analizez semnale...');
+  log(`✓ RSI calculat pentru ${Object.keys(rsiMap).length} stocks`,'ok');
+
+  // ── FAZA 3: Detecție semnale ──
+  log(`🔎 Faza 3: Analizez ${quotesData.length} acțiuni...`,'info');
+  await sleep(0); // yield înainte de loop
+  const newSignals=[];
+  for(let idx=0;idx<quotesData.length;idx++){
+    if(!running) break;
+
+    // Yield la browser la fiecare 5 stocks — previne freeze UI
+    if(idx%5===0){
+      setProgress(75+Math.round(idx/quotesData.length*18), quotesData[idx]?.symbol||'');
+      await sleep(0);
+    }
+
+    const {symbol,q}=quotesData[idx];
+    const price=q.c||0, prevClose=q.pc||q.c||1;
+    const high24=q.h||price, low24=q.l||price;
+
+    // Guard date invalide
+    if(!price||price<=0||isNaN(price)) continue;
+
+    const chg24=(price-prevClose)/prevClose*100;
+    const range24pct=low24>0?(high24-low24)/low24*100:0;
+    const rsi=rsiCache[symbol]||50;
+    const klines=!!rsiCache[symbol];
+    const vol24=0, avgVol=0, volRatio=1, pctFrom52High=0;
+
+    try{
+
+    // 1. RALLY puternic
+    if(activeSigs.has('pump')&&chg24>=3){
+      const strength=Math.min(100,chg24*12);
+      const priority=chg24>=8?'high':chg24>=5?'med':'low';
+      const rsiCtx=rsi>=75?`<span class="warn">⚠️ RSI ${rsi.toFixed(0)} — supracumpărat puternic. Profiturile existente trebuie securizate. NU cumpăra la vârf.</span>`
+        :rsi>=65?`<span class="warn">RSI ${rsi.toFixed(0)} — momentum ridicat. Entry nou cu risc crescut; așteaptă revenire la suport.</span>`
+        :`<span class="good">RSI ${rsi.toFixed(0)} — spațiu tehnic disponibil. Rally cu potențial de continuare.</span>`;
+      const entryZone=rsi>=70?`$${(price*0.96).toFixed(2)}–$${(price*0.98).toFixed(2)}`:`$${(price*0.99).toFixed(2)}–$${price.toFixed(2)}`;
+      const sugg=rsi>=75?'wait':chg24>=8?'scalp':'long';
+      const desc=`<strong>${symbol}</strong> a crescut <strong>+${chg24.toFixed(2)}%</strong> față de închiderea precedentă ($${prevClose.toFixed(2)} → $${price.toFixed(2)}). ${rsiCtx}`;
+      const td={entry:entryZone,tp:`$${(price*1.07).toFixed(2)} / $${(price*1.12).toFixed(2)}`,sl:`$${(price*(rsi>=70?0.94:0.96)).toFixed(2)}`,risc:rsi>=75?'RIDICAT':chg24>=6?'MEDIU':'SCĂZUT'};
+      newSignals.push(makeSignal(symbol,'pump','📈 Rally Puternic',desc,{chg24,rsi,range24pct},price,chg24,strength,priority,sugg,td));
+    }
+
+    // 2. SCĂDERE bruscă
+    if(activeSigs.has('dump')&&chg24<=-3){
+      const strength=Math.min(100,Math.abs(chg24)*12);
+      const priority=chg24<=-8?'high':chg24<=-5?'med':'low';
+      const rsiCtx=rsi<=25?`<span class="good">RSI ${rsi.toFixed(0)} — capitulare extremă. Bounce tehnic de 3–7% probabil. DCA posibil.</span>`
+        :rsi<=35?`<span class="good">RSI ${rsi.toFixed(0)} — supravânzare. Cumpărătorii value pot fi activi curând.</span>`
+        :rsi<=45?`<span class="warn">RSI ${rsi.toFixed(0)} — momentum negativ. Stai lateral. Nicio intrare long fără confirmare.</span>`
+        :`<span class="warn">RSI ${rsi.toFixed(0)} — vânzare cu RSI ridicat = distribuție sau reacție fundamentală. Risc de continuare.</span>`;
+      const sugg=rsi<=30?'dca':'wait';
+      const desc=`<strong>${symbol}</strong> a scăzut <strong>${chg24.toFixed(2)}%</strong> față de închiderea precedentă. ${rsiCtx} <span class="muted">Suport imediat: $${low24.toFixed(2)}. Rezistența de recuperat: $${prevClose.toFixed(2)}.</span>`;
+      const td={entry:`$${(price*0.99).toFixed(2)}–$${low24.toFixed(2)}`,tp:`$${(price*1.05).toFixed(2)}`,sl:`$${(low24*0.97).toFixed(2)}`,risc:rsi>=45?'RIDICAT':'MEDIU'};
+      newSignals.push(makeSignal(symbol,'dump','📉 Scădere Bruscă',desc,{chg24,rsi,range24pct},price,chg24,strength,priority,sugg,td));
+    }
+
+    // 3. VOLATILITATE intraday
+    if(activeSigs.has('volatility')&&range24pct>=1.5&&range24pct<=10){
+      const strength=Math.min(100,range24pct*15);
+      const trendCtx=chg24>=2?`Trend bullish (+${chg24.toFixed(1)}%) — ziua controlată de cumpărători.`
+        :chg24<=-2?`Trend bearish (${chg24.toFixed(1)}%) — presiune de vânzare dominantă.`
+        :`Ziua echilibrată (${chg24>=0?'+':''}${chg24.toFixed(1)}%) — range clar definit.`;
+      const desc=`Interval intraday: <strong>$${low24.toFixed(2)} → $${high24.toFixed(2)}</strong> (${range24pct.toFixed(1)}%). ${trendCtx} <span class="muted">Cumpără aproape de $${low24.toFixed(2)}, vinde aproape de $${high24.toFixed(2)}.</span>`;
+      const td={entry:`$${low24.toFixed(2)}–$${(low24*(1+range24pct/200)).toFixed(2)}`,tp:`$${(high24*0.97).toFixed(2)}`,sl:`$${(low24*0.99).toFixed(2)}`,risc:'SCĂZUT'};
+      newSignals.push(makeSignal(symbol,'volatility','⚡ Volatilitate Intraday',desc,{chg24,rsi,range24pct},price,chg24,strength,'med','scalp',td));
+    }
+
+    // 4. RSI Oversold
+    if(activeSigs.has('rsi-low')&&rsi<=35&&klines){
+      const strength=Math.min(100,(40-rsi)*4);
+      const priority=rsi<=22?'high':'med';
+      const deepCtx=rsi<=22?`<span class="good">RSI ${rsi.toFixed(0)} — supravânzare extremă. Bounceuri istorice de 8–20% posibile.</span>`
+        :`<span class="good">RSI ${rsi.toFixed(0)} — supravânzare clasică. Zona de interes pentru traderii value.</span>`;
+      const confCtx=chg24<=-5?` Scăderea de ${chg24.toFixed(1)}% azi poate reprezenta capitularea vânzătorilor.`:'';
+      const desc=`${deepCtx}${confCtx} <span class="muted">DCA: tranșă 1 la $${price.toFixed(2)}, tranșă 2 la $${(price*0.97).toFixed(2)} dacă scade mai mult. TP1: $${(price*1.06).toFixed(2)}, TP2: $${(price*1.12).toFixed(2)}. Stop: $${(low24*0.97).toFixed(2)}.</span>`;
+      const td={entry:`$${(price*0.99).toFixed(2)}–$${price.toFixed(2)}`,tp:`$${(price*1.06).toFixed(2)} / $${(price*1.12).toFixed(2)}`,sl:`$${(low24*0.97).toFixed(2)}`,risc:rsi<=22?'SCĂZUT':'MEDIU'};
+      newSignals.push(makeSignal(symbol,'rsi-low','📊 RSI Oversold',desc,{chg24,rsi,range24pct},price,chg24,strength,priority,'dca',td));
+    }
+
+    // 5. RSI Overbought
+    if(activeSigs.has('rsi-high')&&rsi>=65&&klines){
+      const strength=Math.min(100,(rsi-60)*4);
+      const priority=rsi>=80?'high':'med';
+      const extCtx=rsi>=80?`<span class="warn">RSI ${rsi.toFixed(0)} — supracumpărat extrem. Probabilitate ridicată de corecție.</span>`
+        :`<span class="warn">RSI ${rsi.toFixed(0)} — momentum ridicat dar spațiu limitat. Evită entry long nou.</span>`;
+      const desc=`${extCtx} <span class="muted">Securizează 30–50% din poziție. Corecție normală: 3–8%. Re-entry după corecție: $${(price*0.94).toFixed(2)}–$${(price*0.97).toFixed(2)}. Short speculativ cu stop la $${(price*1.03).toFixed(2)}.</span>`;
+      const td={entry:`$${price.toFixed(2)}`,tp:`$${(price*0.93).toFixed(2)}`,sl:`$${(price*1.04).toFixed(2)}`,risc:rsi>=80?'MEDIU':'RIDICAT'};
+      newSignals.push(makeSignal(symbol,'rsi-high','📊 RSI Overbought',desc,{chg24,rsi,range24pct},price,chg24,strength,priority,'wait',td));
+    }
+
+    // 6. SWING Setup
+    if(activeSigs.has('swing')){
+      const swingScore=calcSwingScore(chg24,range24pct,rsi,0,0,0);
+      if(swingScore>=65){
+        const strength=swingScore;
+        const rsiCtx=rsi>=55?` RSI ${rsi.toFixed(0)} — intră aproape de support.`
+          :rsi<=45?` RSI ${rsi.toFixed(0)} — entry echilibrat sau upper bound.`
+          :` RSI neutru (${rsi.toFixed(0)}).`;
+        const vwapEst=(high24+low24+price)/3;
+        const swingLow=price*(1-range24pct/200);
+        const swingHigh=price*(1+range24pct/125);
+        const rrNum=price-swingLow>0?((swingHigh-price)/(price-swingLow)).toFixed(1):'?';
+        const desc=`Scor swing: <strong>${swingScore}/100</strong>. Range intraday ${range24pct.toFixed(1)}%, RSI ${rsi.toFixed(0)}.${rsiCtx} <span class="muted">VWAP estimat: $${vwapEst.toFixed(2)}. Target: $${swingHigh.toFixed(2)} (+${((swingHigh/price-1)*100).toFixed(1)}%). Stop: $${swingLow.toFixed(2)} (R:R=${rrNum}:1). Orizont: 2–5 zile.</span>`;
+        const td={entry:`$${price.toFixed(2)}`,tp:`$${swingHigh.toFixed(2)}`,sl:`$${swingLow.toFixed(2)}`,risc:swingScore>=85?'SCĂZUT':'MEDIU'};
+        newSignals.push(makeSignal(symbol,'swing','🎯 Swing Setup',desc,{chg24,rsi,range24pct,swingScore},price,chg24,strength,'low','swing',td));
+      }
+    }
+
+    // 7. Breakout intraday
+    if(activeSigs.has('breakout')&&prevPrices[symbol]){
+      const prev=prevPrices[symbol];
+      const pctMove=Math.abs((price-prev)/prev*100);
+      if(pctMove>=1){
+        const isBull=price>prev;
+        const strength=Math.min(100,pctMove*25);
+        const priority=pctMove>=4?'high':pctMove>=2.5?'med':'low';
+        const confCtx=isBull
+          ?`<span class="good">Breakout BULLISH +${pctMove.toFixed(2)}% față de ultima scanare. Target: $${(price*1.03).toFixed(2)}.</span>`
+          :(rsi<=40?`<span class="good">Breakdown dar RSI supravânzat (${rsi.toFixed(0)}) — bounce tehnic iminent.</span>`
+            :`<span class="warn">Breakdown BEARISH –${pctMove.toFixed(2)}%. Evită long — support: $${(price*0.97).toFixed(2)}.</span>`);
+        const sugg=isBull?'scalp':rsi<=40?'dca':'wait';
+        const desc=`Mișcare de <strong>${pctMove.toFixed(2)}%</strong> față de ultima scanare (<strong>$${prev.toFixed(2)} → $${price.toFixed(2)}</strong>). ${confCtx} <span class="muted">RSI: ${rsi.toFixed(0)}.</span>`;
+        const td={entry:`$${price.toFixed(2)}`,tp:isBull?`$${(price*1.04).toFixed(2)}`:`$${(price*0.96).toFixed(2)}`,sl:isBull?`$${(price*0.97).toFixed(2)}`:`$${(price*1.03).toFixed(2)}`,risc:pctMove>=4?'RIDICAT':'MEDIU'};
+        newSignals.push(makeSignal(symbol,'breakout','💥 Breakout Intraday',desc,{chg24,rsi,range24pct,pctMove},price,chg24,strength,priority,sugg,td));
+      }
+    }
+
+    }catch(err){ log(`⚠️ Semnal ${symbol}: ${err.message}`,'warn'); }
+
+    prevPrices[symbol]=price;
+    prevVolumes[symbol]=0;
+  }
+
+  setProgress(95,'Finalizez...');
+  log(`🔎 Faza 3 completă: ${newSignals.length} semnale detectate.`,'ok');
+  await sleep(0);
+
+  // ── FAZA 4: Sparklines pentru top 10 semnale ──
+  const topForSpark=[...new Set(newSignals.slice(0,10).map(s=>s.coin))];
+  if(topForSpark.length){
+    log(`📊 Faza 4: Sparklines pentru ${topForSpark.length} stocks...`,'info');
+    await fetchSparklines(topForSpark, key);
+  }
+
+  // ── FAZA 5: Scoring oportunități pentru TOȚI stocks scanați ──
+  log('💡 Faza 5: Calculez oportunități...','info');
+  await sleep(0);
+  lastQuotesData=quotesData; // salvează pentru heatmap
+  allOpportunities=quotesData
+    .filter(({q})=>q.c>0&&q.pc>0)
+    .map(({symbol,q})=>{
+      const price=q.c, prevClose=q.pc||q.c;
+      const high24=q.h||price, low24=q.l||price;
+      const chg24=(price-prevClose)/prevClose*100;
+      const range24pct=low24>0?(high24-low24)/low24*100:0;
+      const rsi=rsiCache[symbol]||50;
+      return calcOpportunityScore(symbol,price,prevClose,high24,low24,chg24,range24pct,rsi);
+    });
+  log(`💡 ${allOpportunities.filter(o=>o.score>=65).length} oportunități clare detectate.`,'ok');
+
+  // Verifică price alerts
+  const triggeredAlerts=checkPriceAlerts(quotesData);
+  if(triggeredAlerts) log(`⏰ ${triggeredAlerts} alert(e) declanșate!`,'ok');
+
+  setTimeout(async()=>{
+    await loadNewsForVisible(fhKey);
+    if(currentTab==='reco') renderSignals(); // refresh cards cu news
+  }, 500);
+
+  // Sort by strength
+  newSignals.sort((a,b)=>b.strength-a.strength);
+
+  // Notify high priority
+  const highPrio=newSignals.filter(s=>s.priority==='high');
+  highPrio.slice(0,3).forEach(s=>{
+    const isNew=!allSignals.find(o=>o.coin===s.coin&&o.type===s.type);
+    if(isNew){sendNotif(`${s.coin} — ${s.title}`,s.desc.replace(/<[^>]+>/g,''));totalAlerts++;playSound(s.type);}
+  });
+
+  allSignals=newSignals;
+  historySignals=[...newSignals,...historySignals].slice(0,500);
+  totalScans++;
+  updateStats(newSignals);
+  renderSignals();
+  setProgress(100,'Complet ✓');
+  log(`✅ ${newSignals.length} semnale | High:${highPrio.length}`,'ok');
+
+  setTimeout(()=>{
+    document.getElementById('sdot').className='mdot live';
+    document.getElementById('statusTxt').textContent='ACTIV';
+    document.getElementById('progressBar').classList.remove('show');
+    setProgress(0);
+  },600);
+
+  if(running) startCountdown();
+
+  // Scrie date pentru Hub
+  try{
+    localStorage.setItem('nasdaq_hub_data', JSON.stringify({
+      updated: Date.now(),
+      scanCount: totalScans,
+      signalCount: newSignals.length,
+      topSignals: newSignals.slice(0,10).map(s=>({coin:s.coin,title:s.title,type:s.type,chg:s.chg,strength:s.strength,priority:s.priority,price:s.price})),
+      topOpps: allOpportunities.filter(o=>o.score>=65).sort((a,b)=>b.score-a.score).slice(0,8).map(o=>({symbol:o.symbol,score:o.score,isBuy:o.isBuy,price:o.price,chg24:o.chg24,rsi:o.rsi})),
+      alerts: Object.entries(priceAlerts).map(([sym,a])=>({symbol:sym,target:a.target,dir:a.dir})),
+      watchlist,
+      sentiment: document.getElementById('sentVal')?.textContent||'—',
+      sentimentTxt: document.getElementById('sentTxt')?.textContent||'—',
+    }));
+  }catch(e){}
+}
+
+// ── SIGNAL FACTORY ──
+function makeSignal(coin,type,title,desc,metrics,price,chg,strength,priority,suggestion,tradeDetail){
+  return{id:coin+'_'+type+'_'+Date.now(),coin,type,title,desc,metrics,price,
+    chg:parseFloat(chg),strength:Math.round(strength),priority,
+    suggestion:suggestion||null,tradeDetail:tradeDetail||null,time:Date.now()};
+}
+
+// ── RSI ──
+function calcRSI(closes,period=14){
+  if(closes.length<period+1)return 50;
+  let gains=0,losses=0;
+  for(let i=1;i<=period;i++){const d=closes[i]-closes[i-1];if(d>0)gains+=d;else losses+=Math.abs(d);}
+  let avgG=gains/period,avgL=losses/period;
+  for(let i=period+1;i<closes.length;i++){
+    const d=closes[i]-closes[i-1];
+    avgG=(avgG*(period-1)+(d>0?d:0))/period;
+    avgL=(avgL*(period-1)+(d<0?Math.abs(d):0))/period;
+  }
+  if(avgL===0)return 100;
+  return 100-(100/(1+avgG/avgL));
+}
+
+// ── SWING SCORE ──
+function calcSwingScore(chg24,range24pct,rsi,vol24,avgVol,pctFrom52High){
+  let score=0;
+  if(range24pct>=1.5&&range24pct<=6)score+=30;
+  else if(range24pct>=0.8&&range24pct<1.5)score+=15;
+  else if(range24pct>6&&range24pct<=10)score+=12;
+  if(rsi>=40&&rsi<=60)score+=25;
+  else if((rsi>=32&&rsi<40)||(rsi>60&&rsi<=68))score+=15;
+  if(Math.abs(chg24)<=2)score+=20;
+  else if(Math.abs(chg24)<=4)score+=10;
+  if(avgVol>0&&vol24>=avgVol*0.7)score+=25;
+  else if(avgVol>0&&vol24>=avgVol*0.4)score+=12;
+  if(pctFrom52High>=15&&pctFrom52High<=40)score+=5;
+  return Math.min(100,score);
+}
+
+// ── BUY / SELL SCORING ENGINE ──
+function calcOpportunityScore(symbol, price, prevClose, high24, low24, chg24, range24pct, rsi){
+  let buyScore=50, sellScore=50;
+  const buyReasons=[], sellReasons=[];
+
+  // ── RSI (cel mai important factor) ──
+  if(rsi<=22){buyScore+=32;buyReasons.push({t:'RSI '+rsi.toFixed(0)+' — capitulare extremă. Bounceuri istorice de 8–20% din această zonă.',c:'pos'});}
+  else if(rsi<=30){buyScore+=22;buyReasons.push({t:'RSI '+rsi.toFixed(0)+' — supravânzare clasică. Zona de acumulare pentru investitori value.',c:'pos'});}
+  else if(rsi<=40){buyScore+=12;buyReasons.push({t:'RSI '+rsi.toFixed(0)+' — sub medie, bias bullish pe termen scurt.',c:'pos'});}
+  else if(rsi>=80){buyScore-=28;sellScore+=28;sellReasons.push({t:'RSI '+rsi.toFixed(0)+' — supracumpărat extrem. Corecție de 5–10% probabilă.',c:'neg'});}
+  else if(rsi>=70){buyScore-=18;sellScore+=18;sellReasons.push({t:'RSI '+rsi.toFixed(0)+' — supracumpărat. Momentum puternic dar spațiu limitat.',c:'neg'});}
+  else if(rsi>=60){buyScore-=6;sellScore+=6;sellReasons.push({t:'RSI '+rsi.toFixed(0)+' — momentum ridicat, atenție la entry nou.',c:'neu'});}
+
+  // ── Momentum zilnic ──
+  if(chg24<=-5&&rsi<=40){buyScore+=18;buyReasons.push({t:`Scădere de ${chg24.toFixed(1)}% cu RSI oversold — setup clasic de revenire.`,c:'pos'});}
+  else if(chg24<=-3&&rsi<=45){buyScore+=10;buyReasons.push({t:`Pullback de ${chg24.toFixed(1)}% — posibil entry la suport.`,c:'pos'});}
+  else if(chg24>=5&&rsi<60){buyScore+=14;buyReasons.push({t:`Rally de +${chg24.toFixed(1)}% cu RSI încă sub zonă de risc — momentum confirmat.`,c:'pos'});}
+  else if(chg24>=8&&rsi>=65){buyScore-=8;sellScore+=12;sellReasons.push({t:`Rally de +${chg24.toFixed(1)}% cu RSI ridicat — risc de „sell the news".`,c:'neg'});}
+  else if(chg24<=-8){buyScore-=10;sellScore+=10;sellReasons.push({t:`Scădere abruptă ${chg24.toFixed(1)}% — trend bearish activ.`,c:'neg'});}
+
+  // ── Trend 7 zile din sparkline ──
+  const spark=sparklineCache[symbol];
+  if(spark&&spark.length>=4){
+    const w7=((spark[spark.length-1]-spark[0])/spark[0]*100);
+    const w3=((spark[spark.length-1]-spark[Math.max(0,spark.length-4)])/spark[Math.max(0,spark.length-4)]*100);
+    // Pullback în uptrend = cea mai bună oportunitate de cumpărare
+    if(w7>=5&&chg24<=-1&&rsi<=55){
+      buyScore+=20;
+      buyReasons.push({t:`Pullback ${chg24.toFixed(1)}% azi în trend ascendent (+${w7.toFixed(1)}% 7 zile) — oportunitate clasică de entry.`,c:'pos'});
+    } else if(w7>=8){
+      buyScore+=10;
+      buyReasons.push({t:`Trend puternic +${w7.toFixed(1)}% în 7 zile — momentum pozitiv susținut.`,c:'pos'});
+    } else if(w7<=-10){
+      buyScore-=15;sellScore+=12;
+      sellReasons.push({t:`Trend negativ ${w7.toFixed(1)}% în 7 zile — presiune de vânzare continuă.`,c:'neg'});
+    }
+    // Momentum recent (3 zile) vs săptămânal
+    if(w3>=3&&w7>=3){buyScore+=8;buyReasons.push({t:`Accelerare pozitivă: +${w3.toFixed(1)}% ultimele 3 zile.`,c:'pos'});}
+    else if(w3<=-3&&w7<=-3){sellScore+=8;sellReasons.push({t:`Accelerare negativă: ${w3.toFixed(1)}% ultimele 3 zile.`,c:'neg'});}
+  }
+
+  // ── Volatilitate intraday ──
+  if(range24pct>=2&&range24pct<=6){
+    buyScore+=5;
+    buyReasons.push({t:`Range intraday ${range24pct.toFixed(1)}% — volatilitate optimă pentru entry.`,c:'neu'});
+  } else if(range24pct>10){
+    buyScore-=5;sellScore+=5;
+    sellReasons.push({t:`Range extrem ${range24pct.toFixed(1)}% — zi de risc ridicat, evită levels vagi.`,c:'neg'});
+  }
+
+  // ── Earnings risk ──
+  if(earningsSet.has(symbol)){
+    buyScore-=12;sellScore-=12; // reduce ambele — earnings = risc bidirecțional
+    const msg={t:'⚠️ Earnings în 7 zile — volatilitate imprevizibilă. Risc ridicat pentru orice direcție.',c:'neu'};
+    buyReasons.push(msg);sellReasons.push(msg);
+  }
+
+  // ── Calcul Entry / TP / SL ──
+  const isBuyOpp=buyScore>sellScore;
+  const finalScore=isBuyOpp?Math.min(100,Math.round(buyScore)):Math.min(100,Math.round(sellScore));
+  const entry=price;
+  const tp=isBuyOpp?price*(1+(rsi<=35?0.10:rsi<=45?0.07:0.05)):price*(1-(rsi>=75?0.09:0.06));
+  const sl=isBuyOpp?price*(rsi<=30?0.94:0.96):price*(rsi>=75?1.05:1.04);
+  const rr=Math.abs(tp-entry)/Math.abs(sl-entry);
+
+  return{
+    symbol, price, chg24, rsi, range24pct,
+    isBuy: isBuyOpp,
+    score: finalScore,
+    buyScore: Math.min(100,Math.round(buyScore)),
+    sellScore: Math.min(100,Math.round(sellScore)),
+    reasons: isBuyOpp?buyReasons.slice(0,4):sellReasons.slice(0,4),
+    entry, tp, sl, rr: rr.toFixed(1),
+    spark: spark||null,
+  };
+}
+
+// ── RENDER OPORTUNITĂȚI ──
+function renderRecommendations(){
+  const container=document.getElementById('signalsContainer');
+  if(!allOpportunities.length){
+    container.innerHTML=`<div class="empty"><div class="empty-icon">💡</div><div class="empty-title">Nicio scanare completă</div><div class="empty-sub">Pornește scanner-ul. Tab-ul Oportunități se populează automat după primul scan complet cu date de preț și RSI.</div></div>`;
+    return;
+  }
+  const buys=allOpportunities.filter(o=>o.isBuy&&o.score>=55).sort((a,b)=>b.score-a.score).slice(0,8);
+  const sells=allOpportunities.filter(o=>!o.isBuy&&o.score>=55).sort((a,b)=>b.score-a.score).slice(0,5);
+
+  const verdictInfo=o=>{
+    if(o.isBuy){
+      if(o.score>=80) return{cls:'verdict-buy-strong',txt:'🟢 Cumpără Acum'};
+      if(o.score>=65) return{cls:'verdict-buy',txt:'🟡 Cumpără la Pullback'};
+      return{cls:'verdict-neutral',txt:'⚪ Monitorizează'};
+    }else{
+      if(o.score>=80) return{cls:'verdict-sell-strong',txt:'🔴 Short / Vinde'};
+      if(o.score>=65) return{cls:'verdict-sell',txt:'🟠 Precauție / Reduce'};
+      return{cls:'verdict-neutral',txt:'⚪ Neutru'};
+    }
+  };
+
+  const card=o=>{
+    const v=verdictInfo(o);
+    const isBuy=o.isBuy;
+    const strong=o.score>=75;
+    const clr=isBuy?'var(--green)':'var(--red)';
+    const sparkH=o.spark&&o.spark.length>=2?`<div style="margin-bottom:8px">${renderSparkline(o.symbol)}</div>`:'';
+    const td=`<div class="reco-stats">
+      <div class="reco-stat"><div class="reco-stat-val" style="color:${o.rsi<=35?'var(--acc)':o.rsi>=65?'var(--orange)':'var(--t1)'}">RSI ${o.rsi.toFixed(0)}</div><div class="reco-stat-lbl">RSI 14</div></div>
+      <div class="reco-stat"><div class="reco-stat-val" style="color:${o.chg24>=0?'var(--green)':'var(--red)'}">${o.chg24>=0?'+':''}${o.chg24.toFixed(2)}%</div><div class="reco-stat-lbl">Zi</div></div>
+      <div class="reco-stat"><div class="reco-stat-val">${o.range24pct.toFixed(1)}%</div><div class="reco-stat-lbl">Range zi</div></div>
+      <div class="reco-stat"><div class="reco-stat-val" style="color:${parseFloat(o.rr)>=2?'var(--green)':parseFloat(o.rr)>=1.5?'var(--gold)':'var(--red)'}">${o.rr}:1</div><div class="reco-stat-lbl">R:R</div></div>
+    </div>`;
+    const entrySection=`<div class="trade-detail">
+      <div class="td-item"><div class="td-lbl">📍 Entry</div><div class="td-val">$${o.entry.toFixed(2)}</div></div>
+      <div class="td-item"><div class="td-lbl">🎯 Target</div><div class="td-val" style="color:var(--green)">$${o.tp.toFixed(2)}</div></div>
+      <div class="td-item"><div class="td-lbl">🛡️ Stop</div><div class="td-val" style="color:var(--red)">$${o.sl.toFixed(2)}</div></div>
+    </div>`;
+    const reasonsHtml=o.reasons.map(r=>`<div class="reco-reason"><div class="rdot ${r.c}"></div><span>${r.t}</span></div>`).join('');
+    const tvUrl=`https://www.tradingview.com/chart/?symbol=NASDAQ:${o.symbol}`;
+    const yhUrl=`https://finance.yahoo.com/quote/${o.symbol}`;
+    return`<div class="reco-card ${strong?(isBuy?'buy-strong':'sell-strong'):''}">
+      <div class="${isBuy?'reco-stripe-buy':'reco-stripe-sell'}"></div>
+      <div class="reco-body">
+        <div class="reco-top">
+          <div class="reco-info">
+            <div class="reco-ticker">${o.symbol}${earningsSet.has(o.symbol)?'<span class="earnings-badge">📅 Earnings</span>':''}${watchlist.includes(o.symbol)?'<span class="watchlist-star">⭐</span>':''}</div>
+            <div class="reco-sector">${SECTORS[o.symbol]||'US Equity'}</div>
+            <div class="reco-price">$${o.price.toFixed(2)}</div>
+          </div>
+          <div class="reco-score-wrap">
+            <div class="reco-score ${isBuy?'buy':'sell'}">${o.score}</div>
+            <div class="reco-score-lbl">scor /100</div>
+          </div>
+        </div>
+        <div class="${v.cls} reco-verdict">${v.txt}</div>
+        <div class="conf-wrap">
+          <div class="conf-row"><span>Încredere semnal</span><span style="color:${clr};font-weight:700">${o.score}%</span></div>
+          <div class="conf-track"><div class="conf-fill" style="width:${o.score}%;background:${clr}"></div></div>
+        </div>
+        <div class="reco-reasons">${reasonsHtml}</div>
+        ${sparkH}${td}${entrySection}
+        <div class="sig-actions">
+          <a class="btn-sig" href="${tvUrl}" target="_blank">📈 TradingView</a>
+          <a class="btn-sig" href="${yhUrl}" target="_blank">📰 Yahoo Finance</a>
+        </div>
+        ${renderNewsSection(o.symbol)}
+        ${renderAlertSection(o.symbol, o.price)}
+        ${renderAISection(o.symbol)}
+      </div>
+    </div>`;
+  };
+
+  let html='<div class="reco-grid">';
+  if(buys.length){
+    html+=`<div class="reco-section-title buy">🟢 Top ${buys.length} Oportunități de Cumpărare</div>`;
+    html+=buys.map(card).join('');
+  }
+  if(sells.length){
+    html+=`<div class="reco-section-title sell" style="margin-top:14px">🔴 Top ${sells.length} Risc / Short</div>`;
+    html+=sells.map(card).join('');
+  }
+  if(!buys.length&&!sells.length){
+    html+=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Nicio oportunitate clară</div><div class="empty-sub">Piața pare neutră. Nicio acțiune scanată nu depășește pragul de scor 55. Reîncearcă după scanarea mai multor stocks.</div></div>`;
+  }
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+// ── SWING SCORE ──
+function calcSwingScore(chg24,range24pct,rsi,vol24,avgVol,pctFrom52High){
+  let score=0;
+  if(range24pct>=1.5&&range24pct<=6)score+=30;
+  else if(range24pct>=0.8&&range24pct<1.5)score+=15;
+  else if(range24pct>6&&range24pct<=10)score+=12;
+  if(rsi>=40&&rsi<=60)score+=25;
+  else if((rsi>=32&&rsi<40)||(rsi>60&&rsi<=68))score+=15;
+  if(Math.abs(chg24)<=2)score+=20;
+  else if(Math.abs(chg24)<=4)score+=10;
+  if(avgVol>0&&vol24>=avgVol*0.7)score+=25;
+  else if(avgVol>0&&vol24>=avgVol*0.4)score+=12;
+  if(pctFrom52High>=15&&pctFrom52High<=40)score+=5; // not at extreme
+  return Math.min(100,score);
+}
+
+// ── RENDER ──
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.ftag').forEach(t=>t.classList.remove('act'));
+  el.classList.add('act');renderSignals();
+}
+function setTab(t,el){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('act'));
+  el.classList.add('act');renderSignals();
+}
+
+function renderSignals(){
+  if(currentTab==='reco'){ renderRecommendations(); return; }
+  if(currentTab==='heatmap'){ renderHeatmap(); return; }
+  const container=document.getElementById('signalsContainer');
+  const q=(document.getElementById('searchInp').value||'').toLowerCase();
+  let source=currentTab==='history'?historySignals:allSignals;
+  if(currentTab==='live') source=source.filter(s=>Date.now()-s.time<120000);
+  else if(currentTab==='swing') source=source.filter(s=>s.type==='swing');
+  if(currentFilter==='pump') source=source.filter(s=>s.type==='pump');
+  else if(currentFilter==='dump') source=source.filter(s=>s.type==='dump');
+  else if(currentFilter==='swing') source=source.filter(s=>s.type==='swing');
+  else if(currentFilter==='rsi') source=source.filter(s=>s.type==='rsi-low'||s.type==='rsi-high');
+  else if(currentFilter==='high') source=source.filter(s=>s.priority==='high');
+  if(q) source=source.filter(s=>s.coin.toLowerCase().includes(q));
+
+  if(!source.length){
+    if(!running){
+      container.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><div class="empty-title">Scanner oprit</div><div class="empty-sub">Apasă <strong>▶ Pornește Scanner</strong> pentru a analiza automat acțiunile Nasdaq.<br><br>Scannerul verifică volatilitatea, RSI, volumul față de medie și setups de swing pe top ${document.getElementById('topN').value} acțiuni.</div></div>`;
+    }else{
+      container.innerHTML=`<div class="scan-anim"><div class="scan-ring"></div><div class="scan-txt">Se scanează acțiunile...</div><div class="scan-coin" id="scanCoinTxt"></div></div>`;
+    }
+    return;
+  }
+
+  const typeIcons={pump:'📈',dump:'📉',volatility:'⚡','rsi-low':'📊','rsi-high':'📊',volume:'📦',swing:'🎯',breakout:'💥'};
+  const typeStripe={pump:'stripe-pump',dump:'stripe-dump',volatility:'stripe-volatility','rsi-low':'stripe-rsi-low','rsi-high':'stripe-rsi-high',volume:'stripe-volume',swing:'stripe-swing',breakout:'stripe-breakout'};
+  const typeBadge={pump:'tb-pump',dump:'tb-dump',volatility:'tb-volatility','rsi-low':'tb-rsi-low','rsi-high':'tb-rsi-high',volume:'tb-volume',swing:'tb-swing',breakout:'tb-breakout'};
+  const suggLabels={long:'▲ LONG',short:'▼ SHORT',scalp:'⚡ SCALP',swing:'🎯 SWING',wait:'⏳ WAIT',dca:'📥 DCA'};
+  const suggClass={long:'ta-long',short:'ta-short',scalp:'ta-scalp',swing:'ta-swing',wait:'ta-wait',dca:'ta-dca'};
+  const strengthColor=s=>s>=80?'#059669':s>=60?'#d97706':'#64748b';
+  const priorityClass=p=>p==='high'?'priority-high':p==='med'?'priority-med':'';
+
+  container.innerHTML=`<div class="signals-grid">${source.slice(0,40).map(s=>{
+    const chgStr=(s.chg>=0?'+':'')+s.chg.toFixed(2)+'%';
+    const m=s.metrics||{};
+    const ago=timeAgo(s.time);
+    const tvUrl=`https://www.tradingview.com/chart/?symbol=NASDAQ:${s.coin}`;
+    const yhUrl=`https://finance.yahoo.com/quote/${s.coin}`;
+    const sector=SECTORS[s.coin]||'Nasdaq';
+    const isWatchlist=watchlist.includes(s.coin);
+    const hasEarnings=earningsSet.has(s.coin);
+    const earningsBadge=hasEarnings?`<span class="earnings-badge">📅 Earnings</span>`:'';
+    const wlStar=isWatchlist?`<span class="watchlist-star">⭐</span>`:'';
+    const sparkHtml=renderSparkline(s.coin);
+    const suggHtml=s.suggestion?`<div class="trade-action ${suggClass[s.suggestion]||'ta-wait'}">${suggLabels[s.suggestion]||s.suggestion}</div>`:'';
+    const tdHtml=s.tradeDetail?`<div class="trade-detail">
+      <div class="td-item"><div class="td-lbl">📍 Entry</div><div class="td-val">${s.tradeDetail.entry}</div></div>
+      <div class="td-item"><div class="td-lbl">🎯 Target</div><div class="td-val" style="color:var(--green)">${s.tradeDetail.tp}</div></div>
+      <div class="td-item"><div class="td-lbl">🛡️ Stop</div><div class="td-val" style="color:var(--red)">${s.tradeDetail.sl} <span style="font-size:.48rem;color:${s.tradeDetail.risc==='RIDICAT'?'var(--red)':s.tradeDetail.risc==='MEDIU'?'var(--gold)':'var(--green)'};font-weight:800">${s.tradeDetail.risc}</span></div></div>
+    </div>`:'';
+
+    return`<div class="sig-card ${priorityClass(s.priority)}">
+      <div class="sig-stripe ${typeStripe[s.type]||'stripe-volatility'}"></div>
+      <div class="sig-body">
+        <div class="sig-top">
+          <div class="sig-left">
+            <div class="sig-coin">
+              ${s.coin}${wlStar}${earningsBadge}
+              <span class="sig-type-badge ${typeBadge[s.type]||'tb-volatility'}">${typeIcons[s.type]||'⚡'} ${s.title}</span>
+            </div>
+            <div class="sig-sector">${sector}</div>
+            <div class="sig-price">$${s.price>=100?s.price.toFixed(2):s.price.toFixed(3)}</div>
+          </div>
+          <div class="sig-right">
+            <div class="sig-chg ${s.chg>=0?'up':'down'}">${chgStr}</div>
+            <div class="sig-time">${ago}</div>
+          </div>
+        </div>
+        ${suggHtml}
+        <div class="sig-desc">${s.desc}</div>
+        ${tdHtml}
+        ${sparkHtml}
+        <div class="sig-metrics">
+          ${m.rsi!==undefined?`<div class="metric"><div class="metric-val" style="color:${m.rsi<=35?'var(--acc)':m.rsi>=65?'var(--orange)':'var(--t2)'}">${m.rsi.toFixed(0)}</div><div class="metric-lbl">RSI 14</div></div>`:''}
+          ${m.range24pct!==undefined?`<div class="metric"><div class="metric-val" style="color:var(--gold)">${m.range24pct.toFixed(1)}%</div><div class="metric-lbl">Range zi</div></div>`:''}
+          ${m.swingScore!==undefined?`<div class="metric"><div class="metric-val" style="color:var(--teal)">${m.swingScore}</div><div class="metric-lbl">Swing Score</div></div>`:''}
+          ${m.volRatio!==undefined?`<div class="metric"><div class="metric-val" style="color:var(--purple)">${m.volRatio.toFixed(1)}×</div><div class="metric-lbl">Vol vs Avg</div></div>`:''}
+          ${m.vol24!==undefined?`<div class="metric"><div class="metric-val">${fmtVol(m.vol24)}</div><div class="metric-lbl">Vol zi</div></div>`:''}
+        </div>
+        <div class="strength-wrap">
+          <div class="strength-lbl"><span>Intensitate semnal</span><span style="color:${strengthColor(s.strength)};font-weight:700">${s.strength}%</span></div>
+          <div class="strength-track"><div class="strength-fill" style="width:${s.strength}%;background:${strengthColor(s.strength)}"></div></div>
+        </div>
+        <div class="sig-actions">
+          <a class="btn-sig" href="${tvUrl}" target="_blank" rel="noopener">📈 TradingView</a>
+          <a class="btn-sig" href="${yhUrl}" target="_blank" rel="noopener">📰 Yahoo Finance</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function updateStats(signals){
+  document.getElementById('st-signals').textContent=signals.length;
+  document.getElementById('st-alerts').textContent=totalAlerts;
+  document.getElementById('st-scans').textContent=totalScans;
+  const top=signals[0];
+  document.getElementById('st-top').textContent=top?top.coin:'—';
+}
+
+// ── AUDIO ──
+function playSound(type){
+  if(!audioCtx)return;
+  const freqMap={pump:[523,659,784],dump:[784,659,523],volatility:[440,554,659],'rsi-low':[523,659],'rsi-high':[659,523],volume:[440,440,880],swing:[523,784],breakout:[523,659,784,1047]};
+  const freqs=freqMap[type]||[440,550];
+  freqs.forEach((f,i)=>{
+    try{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g);g.connect(audioCtx.destination);
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.1,audioCtx.currentTime+i*.1);
+      g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+i*.1+.15);
+      o.start(audioCtx.currentTime+i*.1);o.stop(audioCtx.currentTime+i*.1+.15);
+    }catch(e){}
+  });
+}
+
+// ── PROGRESS ──
+function setProgress(pct,coin=''){
+  document.getElementById('progressFill').style.width=pct+'%';
+  if(coin) document.getElementById('statusTxt').textContent='SCAN: '+coin;
+  const el=document.getElementById('scanCoinTxt');
+  if(el&&coin) el.textContent=coin;
+}
+
+// ── LOG ──
+function log(msg,type='info'){
+  const body=document.getElementById('logBody');
+  const time=new Date().toLocaleTimeString('ro-RO');
+  const div=document.createElement('div');
+  div.className='ll';
+  div.innerHTML=`<span class="lt">${time}</span><span class="l${type}">${msg}</span>`;
+  body.insertBefore(div,body.firstChild);
+  while(body.children.length>50)body.removeChild(body.lastChild);
+}
+function clearLog(){document.getElementById('logBody').innerHTML='';}
+
+// ── UTILS ──
+function fmtVol(v){
+  if(!v||isNaN(v))return'—';
+  if(v>=1e9)return(v/1e9).toFixed(1)+'B';
+  if(v>=1e6)return(v/1e6).toFixed(0)+'M';
+  if(v>=1e3)return(v/1e3).toFixed(0)+'K';
+  return v.toString();
+}
+function timeAgo(ts){
+  const d=Math.floor((Date.now()-ts)/1000);
+  if(d<60)return d+'s';if(d<3600)return Math.floor(d/60)+'m';return Math.floor(d/3600)+'h';
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+let toastT;
+function showToast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast '+type+' show';
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon-crypto.svg">
+<link rel="apple-touch-icon" href="icon-crypto.svg">
+<meta name="apple-mobile-web-app-title" content="Crypto Scanner">
+<meta name="application-name" content="Crypto Scanner">
+<meta name="theme-color" content="#f8faff">
+<title>Crypto Opportunity Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:    #f4f6ff;
+  --bg2:   #ffffff;
+  --bg3:   #f0f2fc;
+  --bg4:   #e8ebf8;
+  --b1:    #dde2f5;
+  --b2:    #c8d0ed;
+  --t1:    #0f172a;
+  --t2:    #475569;
+  --t3:    #94a3b8;
+  --acc:   #4f46e5;
+  --accl:  rgba(79,70,229,.08);
+  --accb:  rgba(79,70,229,.22);
+  --green: #059669; --greenl:rgba(5,150,105,.08);  --greenb:rgba(5,150,105,.22);
+  --red:   #dc2626; --redl:  rgba(220,38,38,.08);   --redb:  rgba(220,38,38,.22);
+  --gold:  #d97706; --goldl: rgba(217,119,6,.08);   --goldb: rgba(217,119,6,.22);
+  --cyan:  #0891b2; --cyanl: rgba(8,145,178,.07);
+  --purple:#7c3aed; --purpll:rgba(124,58,237,.08);  --purplb:rgba(124,58,237,.22);
+  --orange:#ea580c; --orangl:rgba(234,88,12,.08);
+  --mono:'DM Mono',monospace;
+  --head:'Sora',sans-serif;
+  --r:12px; --rs:8px;
+  --sh: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shh:0 4px 16px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100vh;overflow-x:hidden}
+body{font-family:var(--mono);background:var(--bg);color:var(--t1);min-height:100vh;}
+
+.app{max-width:960px;margin:0 auto;padding:14px 14px 100px;}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:14px;border-bottom:1px solid var(--b1);
+  margin-bottom:18px;gap:10px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:11px;}
+.brand-icon{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 4px 14px rgba(79,70,229,.25);flex-shrink:0;
+}
+.brand-name{font-family:var(--head);font-weight:800;font-size:1.25rem;color:var(--t1);}
+.brand-name span{color:var(--acc);}
+.brand-sub{font-size:.58rem;color:var(--t3);letter-spacing:.5px;margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+
+/* status pill */
+.status-pill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg2);border:1px solid var(--b1);border-radius:20px;
+  padding:5px 12px;font-size:.62rem;font-weight:600;color:var(--t2);
+  box-shadow:var(--sh);
+}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;}
+.sdot.scanning{background:var(--acc);box-shadow:0 0 6px var(--acc);animation:blink .8s infinite;}
+.sdot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.notif-btn{
+  padding:6px 12px;border-radius:var(--rs);font-size:.62rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);
+  transition:all .15s;box-shadow:var(--sh);
+}
+.notif-btn.granted{border-color:var(--greenb);background:var(--greenl);color:var(--green);}
+.notif-btn.denied{border-color:var(--redb);background:var(--redl);color:var(--red);}
+
+/* ── CONTROL PANEL ── */
+.control-panel{
+  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
+  padding:16px;margin-bottom:14px;box-shadow:var(--sh);
+}
+.cp-title{
+  font-family:var(--head);font-weight:700;font-size:.72rem;
+  color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;
+  margin-bottom:14px;display:flex;align-items:center;gap:6px;
+}
+.cp-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--acc);}
+
+.cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+@media(max-width:550px){.cp-grid{grid-template-columns:1fr 1fr;}}
+
+.cp-field label{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px;}
+.cp-inp{
+  width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--b1);
+  border-radius:var(--rs);color:var(--t1);font-size:.72rem;font-family:var(--mono);
+  outline:none;transition:border .15s;
+}
+.cp-inp:focus{border-color:var(--accb);}
+.cp-inp::placeholder{color:var(--t3);}
+
+/* signal toggles */
+.signal-toggles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.sig-tog{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);
+  padding:7px 11px;cursor:pointer;transition:all .15s;user-select:none;font-size:.62rem;
+}
+.sig-tog.on{border-color:var(--accb);background:var(--accl);}
+.sig-tog.on.c-green{border-color:var(--greenb);background:var(--greenl);}
+.sig-tog.on.c-red{border-color:var(--redb);background:var(--redl);}
+.sig-tog.on.c-gold{border-color:var(--goldb);background:var(--goldl);}
+.sig-tog.on.c-purple{border-color:var(--purplb);background:var(--purpll);}
+.sig-tog.on.c-orange{border-color:rgba(234,88,12,.22);background:var(--orangl);}
+.tog-dot{width:8px;height:8px;border-radius:50%;background:var(--t3);flex-shrink:0;}
+.sig-tog.on .tog-dot{background:var(--acc);}
+.sig-tog.on.c-green .tog-dot{background:var(--green);}
+.sig-tog.on.c-red .tog-dot{background:var(--red);}
+.sig-tog.on.c-gold .tog-dot{background:var(--gold);}
+.sig-tog.on.c-purple .tog-dot{background:var(--purple);}
+.sig-tog.on.c-orange .tog-dot{background:var(--orange);}
+
+/* start/stop */
+.btn-start{
+  padding:12px 28px;border-radius:10px;font-family:var(--head);font-weight:800;
+  font-size:.82rem;letter-spacing:1px;text-transform:uppercase;
+  border:none;cursor:pointer;transition:all .2s;
+  background:linear-gradient(135deg,var(--acc),var(--purple));
+  color:#fff;box-shadow:0 4px 16px rgba(79,70,229,.3);
+}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(79,70,229,.4);}
+.btn-start:active{transform:translateY(0);}
+.btn-stop{
+  padding:12px 28px;border-radius:10px;font-family:var(--head);font-weight:800;
+  font-size:.82rem;letter-spacing:1px;text-transform:uppercase;
+  border:1px solid var(--redb);cursor:pointer;transition:all .2s;
+  background:var(--redl);color:var(--red);
+}
+.btn-stop:hover{background:var(--red);color:#fff;}
+.progress-bar{
+  height:4px;background:var(--b1);border-radius:2px;margin-top:10px;overflow:hidden;display:none;
+}
+.progress-bar.show{display:block;}
+.progress-fill{height:100%;border-radius:2px;width:0%;transition:width .4s ease;
+  background:linear-gradient(90deg,var(--acc),var(--purple));}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+@media(max-width:560px){.stats{grid-template-columns:repeat(3,1fr);}}
+.stat{
+  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
+  padding:9px 11px;box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0;}
+.stat.s-acc::after{background:var(--acc);}
+.stat.s-green::after{background:var(--green);}
+.stat.s-red::after{background:var(--red);}
+.stat.s-gold::after{background:var(--gold);}
+.stat.s-purple::after{background:var(--purple);}
+.stat-val{font-family:var(--head);font-weight:800;font-size:1.3rem;line-height:1;}
+.stat-lbl{font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-top:4px;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--bg2);border-radius:10px;padding:4px;border:1px solid var(--b1);box-shadow:var(--sh);}
+.tab{flex:1;padding:7px 4px;text-align:center;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);border-radius:7px;cursor:pointer;transition:all .15s;}
+.tab.act{background:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(79,70,229,.3);}
+
+/* ── SIGNAL CARDS ── */
+.signals-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:500px){.signals-grid{grid-template-columns:1fr;}}
+
+.sig-card{
+  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
+  overflow:hidden;box-shadow:var(--sh);transition:all .2s;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.sig-card:hover{box-shadow:var(--shh);transform:translateY(-2px);}
+.sig-card.priority-high{border-color:transparent;box-shadow:0 0 0 2px var(--red),var(--sh);}
+.sig-card.priority-med{border-color:transparent;box-shadow:0 0 0 2px var(--gold),var(--sh);}
+
+.sig-stripe{height:3px;}
+.stripe-pump{background:linear-gradient(90deg,var(--green),#10b981);}
+.stripe-dump{background:linear-gradient(90deg,var(--red),#ef4444);}
+.stripe-volatility{background:linear-gradient(90deg,var(--gold),#f59e0b);}
+.stripe-rsi-low{background:linear-gradient(90deg,var(--acc),#6366f1);}
+.stripe-rsi-high{background:linear-gradient(90deg,var(--orange),#f97316);}
+.stripe-volume{background:linear-gradient(90deg,var(--purple),#a855f7);}
+.stripe-grid{background:linear-gradient(90deg,var(--cyan),#06b6d4);}
+.stripe-breakout{background:linear-gradient(90deg,#ec4899,#f43f5e);}
+
+.sig-body{padding:12px 13px;}
+.sig-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.sig-left{flex:1;}
+.sig-coin{font-family:var(--head);font-weight:800;font-size:1.05rem;color:var(--t1);display:flex;align-items:center;gap:7px;}
+.sig-type-badge{
+  font-size:.52rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  padding:2px 7px;border-radius:4px;white-space:nowrap;
+}
+.tb-pump{background:var(--greenl);color:var(--green);border:1px solid var(--greenb);}
+.tb-dump{background:var(--redl);color:var(--red);border:1px solid var(--redb);}
+.tb-volatility{background:var(--goldl);color:var(--gold);border:1px solid var(--goldb);}
+.tb-rsi-low{background:var(--accl);color:var(--acc);border:1px solid var(--accb);}
+.tb-rsi-high{background:var(--orangl);color:var(--orange);border:1px solid rgba(234,88,12,.22);}
+.tb-volume{background:var(--purpll);color:var(--purple);border:1px solid var(--purplb);}
+.tb-grid{background:var(--cyanl);color:var(--cyan);border:1px solid rgba(8,145,178,.22);}
+.tb-breakout{background:rgba(236,72,153,.08);color:#ec4899;border:1px solid rgba(236,72,153,.22);}
+
+.sig-price{font-size:.9rem;font-weight:700;color:var(--t2);margin-top:3px;}
+.sig-right{text-align:right;}
+.sig-chg{font-family:var(--head);font-weight:800;font-size:1.1rem;}
+.sig-chg.up{color:var(--green);}
+.sig-chg.down{color:var(--red);}
+.sig-time{font-size:.58rem;color:var(--t3);margin-top:3px;}
+
+.sig-desc{font-size:.65rem;color:var(--t2);line-height:1.6;margin-bottom:8px;}
+.sig-desc strong{color:var(--t1);}
+.sig-desc .warn{color:var(--orange);font-weight:700;}
+.sig-desc .good{color:var(--green);font-weight:700;}
+.sig-desc .muted{color:var(--t3);}
+
+.trade-action{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:6px;font-size:.6rem;font-weight:800;
+  letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;
+}
+.ta-long{background:rgba(5,150,105,.12);color:var(--green);border:1px solid rgba(5,150,105,.3);}
+.ta-short{background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.28);}
+.ta-scalp{background:rgba(79,70,229,.1);color:var(--acc);border:1px solid rgba(79,70,229,.28);}
+.ta-grid{background:rgba(8,145,178,.09);color:var(--cyan);border:1px solid rgba(8,145,178,.25);}
+.ta-wait{background:rgba(217,119,6,.1);color:var(--gold);border:1px solid rgba(217,119,6,.28);}
+.ta-dca{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.28);}
+
+.trade-detail{
+  background:var(--bg3);border:1px solid var(--b1);border-radius:8px;
+  padding:8px 10px;margin-bottom:8px;display:grid;
+  grid-template-columns:repeat(3,1fr);gap:6px;
+}
+.td-item{display:flex;flex-direction:column;gap:2px;}
+.td-lbl{font-size:.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;}
+.td-val{font-size:.66rem;font-weight:700;color:var(--t1);}
+
+.sig-metrics{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.metric{
+  display:flex;flex-direction:column;
+  background:var(--bg3);border:1px solid var(--b1);border-radius:6px;
+  padding:5px 9px;min-width:60px;
+}
+.metric-val{font-size:.7rem;font-weight:700;color:var(--t1);}
+.metric-lbl{font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+
+.sig-actions{display:flex;gap:5px;}
+.btn-sig{
+  flex:1;padding:6px 8px;border-radius:6px;font-size:.6rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--b1);
+  background:var(--bg3);color:var(--t2);cursor:pointer;transition:all .15s;
+  text-align:center;text-decoration:none;display:block;
+}
+.btn-sig:hover{border-color:var(--b2);color:var(--t1);}
+.btn-sig.primary{background:var(--accl);border-color:var(--accb);color:var(--acc);}
+.btn-sig.primary:hover{background:var(--acc);color:#fff;}
+
+/* strength bar */
+.strength-wrap{margin-bottom:8px;}
+.strength-lbl{font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;display:flex;justify-content:space-between;}
+.strength-track{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width .5s ease;}
+
+/* ── EMPTY / LOADING ── */
+.empty{text-align:center;padding:52px 20px;color:var(--t3);}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.2;}
+.empty-title{font-family:var(--head);font-weight:700;font-size:.9rem;color:var(--t2);margin-bottom:6px;}
+.empty-sub{font-size:.65rem;line-height:1.6;}
+
+.scan-anim{
+  display:flex;flex-direction:column;align-items:center;padding:52px 20px;
+}
+.scan-ring{
+  width:56px;height:56px;border-radius:50%;
+  border:3px solid var(--b1);border-top-color:var(--acc);
+  animation:spin .7s linear infinite;margin-bottom:14px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-txt{font-size:.7rem;color:var(--t2);font-weight:600;}
+.scan-coin{font-size:.62rem;color:var(--t3);margin-top:4px;}
+
+/* ── LOG ── */
+.log-panel{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-top:14px;box-shadow:var(--sh);}
+.log-hdr{padding:8px 13px;border-bottom:1px solid var(--b1);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;}
+.log-clear{background:none;border:none;color:var(--t3);font-size:.58rem;cursor:pointer;}
+.log-clear:hover{color:var(--red);}
+.log-body{padding:6px 13px;max-height:130px;overflow-y:auto;font-size:.62rem;line-height:1.8;}
+.log-body::-webkit-scrollbar{width:3px;}
+.log-body::-webkit-scrollbar-thumb{background:var(--b1);}
+.ll{display:flex;gap:8px;}
+.lt{color:var(--t3);flex-shrink:0;}
+.lok{color:var(--green);}
+.lwarn{color:var(--gold);}
+.lerr{color:var(--red);}
+.linfo{color:var(--acc);}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--bg2);border:1px solid var(--b2);border-radius:10px;
+  padding:10px 18px;font-size:.7rem;color:var(--t1);
+  z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;
+  box-shadow:var(--shh);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-left:3px solid var(--green);}
+.toast.err{border-left:3px solid var(--red);}
+
+/* filter search */
+.filter-bar{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap;}
+.search-wrap{
+  flex:1;min-width:140px;display:flex;align-items:center;gap:7px;
+  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--rs);
+  padding:7px 11px;box-shadow:var(--sh);transition:border .15s;
+}
+.search-wrap:focus-within{border-color:var(--accb);}
+.search-wrap svg{width:13px;height:13px;stroke:var(--t3);flex-shrink:0;}
+.search-wrap input{background:none;border:none;outline:none;color:var(--t1);font-size:.7rem;width:100%;font-family:var(--mono);}
+.search-wrap input::placeholder{color:var(--t3);}
+.ftag{padding:5px 11px;border-radius:20px;font-size:.6rem;font-weight:600;cursor:pointer;border:1px solid var(--b1);background:var(--bg2);color:var(--t3);transition:all .15s;white-space:nowrap;box-shadow:var(--sh);}
+.ftag:hover{color:var(--t2);}
+.ftag.act{border-color:var(--accb);background:var(--accl);color:var(--acc);}
+
+/* ── MACRO BAR ── */
+.macro-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:14px;flex-wrap:wrap;box-shadow:var(--sh);}
+.macro-item{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:60px;}
+.macro-val{font-family:var(--head);font-weight:800;font-size:.82rem;}
+.macro-lbl{font-size:.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;}
+.macro-divider{width:1px;height:28px;background:var(--b1);flex-shrink:0;}
+.macro-fg{display:flex;align-items:center;gap:6px;flex:1;}
+.fg-track{flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));position:relative;min-width:60px;}
+.fg-needle{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--t1);transition:left .5s;}
+
+/* ── RECO / HEATMAP ── */
+.reco-grid{display:flex;flex-direction:column;gap:10px;}
+.reco-sec{font-family:var(--head);font-weight:700;font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px;margin:8px 0 4px;display:flex;align-items:center;gap:7px;}
+.reco-sec::before{content:'';width:3px;height:12px;border-radius:2px;}
+.reco-sec.buy::before{background:var(--green);}
+.reco-sec.sell::before{background:var(--red);}
+.reco-card{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+.reco-card.buy-s{box-shadow:0 0 0 2px var(--green),var(--sh);border-color:transparent;}
+.reco-card.sell-s{box-shadow:0 0 0 2px var(--red),var(--sh);border-color:transparent;}
+.reco-stripe-b{height:3px;background:linear-gradient(90deg,var(--green),#10b981);}
+.reco-stripe-s{height:3px;background:linear-gradient(90deg,var(--red),#f87171);}
+.reco-body{padding:12px 13px;}
+.reco-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.reco-info{flex:1;}
+.reco-ticker{font-family:var(--head);font-weight:800;font-size:1.05rem;}
+.reco-cat{font-size:.52rem;color:var(--t3);margin-top:2px;}
+.reco-price{font-size:.88rem;font-weight:700;color:var(--t2);margin-top:2px;}
+.reco-score{font-family:var(--head);font-weight:800;font-size:1.4rem;line-height:1;}
+.reco-score.buy{color:var(--green);}
+.reco-score.sell{color:var(--red);}
+.reco-score-lbl{font-size:.5rem;color:var(--t3);text-transform:uppercase;}
+.reco-verdict{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:.6rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.rv-buy-s{background:rgba(5,150,105,.14);color:var(--green);border:1px solid var(--greenb);}
+.rv-buy{background:var(--greenl);color:var(--green);border:1px solid rgba(5,150,105,.18);}
+.rv-neu{background:var(--goldl);color:var(--gold);border:1px solid var(--goldb);}
+.rv-sell{background:var(--redl);color:var(--red);border:1px solid var(--redb);}
+.rv-sell-s{background:rgba(220,38,38,.13);color:var(--red);border:1px solid var(--redb);}
+.reco-reasons{margin-bottom:9px;}
+.reco-reason{display:flex;align-items:flex-start;gap:5px;font-size:.62rem;color:var(--t2);line-height:1.4;margin-bottom:4px;}
+.rdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.rdot.pos{background:var(--green);}
+.rdot.neg{background:var(--red);}
+.rdot.neu{background:var(--gold);}
+.conf-wrap{margin-bottom:9px;}
+.conf-row{display:flex;justify-content:space-between;font-size:.54rem;color:var(--t3);text-transform:uppercase;margin-bottom:3px;}
+.conf-track{height:5px;background:var(--b1);border-radius:3px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:3px;transition:width .5s;}
+.hm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:480px){.hm-grid{grid-template-columns:1fr 1fr;}}
+.hm-tile{border-radius:10px;padding:10px 12px;transition:transform .15s;}
+.hm-tile:hover{transform:translateY(-2px);}
+.hm-cat{font-size:.56rem;opacity:.8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.hm-chg{font-family:var(--head);font-weight:800;font-size:1.15rem;color:#fff;}
+.hm-cnt{font-size:.5rem;opacity:.7;margin-top:2px;}
+.hm-best{font-size:.54rem;opacity:.8;margin-top:4px;}
+.alert-section{margin-top:8px;border-top:1px solid var(--b1);padding-top:8px;}
+.alert-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.alert-lbl{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;}
+.alert-inp{flex:1;min-width:80px;padding:5px 9px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rs);font-size:.68rem;font-family:var(--mono);color:var(--t1);outline:none;}
+.alert-inp:focus{border-color:var(--accb);}
+.alert-btn{padding:5px 11px;border-radius:var(--rs);font-size:.6rem;font-weight:700;border:none;background:var(--acc);color:#fff;cursor:pointer;}
+.alert-active{display:flex;align-items:center;gap:6px;background:var(--goldl);border:1px solid var(--goldb);border-radius:6px;padding:4px 9px;font-size:.6rem;color:var(--gold);font-weight:600;}
+.alert-active button{background:none;border:none;color:var(--gold);cursor:pointer;font-size:.75rem;}
+.ai-btn-c{width:100%;margin-top:8px;padding:7px;border-radius:7px;font-size:.63rem;font-weight:700;border:1px solid var(--purplb);background:var(--purpll);color:var(--purple);cursor:pointer;transition:all .2s;}
+.ai-btn-c:hover{background:var(--purple);color:#fff;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="brand">
+    <div class="brand-icon">🔭</div>
+    <div>
+      <div class="brand-name">Crypto <span>Scanner</span></div>
+      <div class="brand-sub">Oportunități live · Binance API · Notificări instant</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-pill">
+      <div class="sdot" id="sdot"></div>
+      <span id="statusTxt">OPRIT</span>
+    </div>
+    <a href="index.html" style="padding:5px 11px;border-radius:7px;font-size:.6rem;font-weight:600;border:1px solid var(--b1);background:var(--bg2);color:var(--t2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:all .15s;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t2)'">← Hub</a>
+    <div class="notif-btn" id="notifBtn" onclick="requestNotif()">🔔 Notificări</div>
+  </div>
+</div>
+
+
+<!-- MACRO BAR -->
+<div class="macro-bar" id="macroBar">
+  <div class="macro-item"><div class="macro-val" id="mc-fg-val" style="color:var(--gold)">—</div><div class="macro-lbl">Fear&Greed</div></div>
+  <div class="macro-divider"></div>
+  <div class="macro-fg">
+    <div class="fg-track"><div class="fg-needle" id="mc-fg-needle" style="left:50%"></div></div>
+    <div style="font-size:.58rem;color:var(--t3)" id="mc-fg-txt">—</div>
+  </div>
+  <div class="macro-divider"></div>
+  <div class="macro-item"><div class="macro-val" id="mc-btc" style="color:var(--gold)">—</div><div class="macro-lbl">BTC 24h</div></div>
+  <div class="macro-divider"></div>
+  <div class="macro-item"><div class="macro-val" id="mc-eth" style="color:var(--cyan)">—</div><div class="macro-lbl">ETH 24h</div></div>
+  <div class="macro-divider"></div>
+  <div class="macro-item"><div class="macro-val" id="mc-mkt" style="color:var(--t2)">—</div><div class="macro-lbl">Piață</div></div>
+</div>
+
+<!-- CONTROL PANEL -->
+<div class="control-panel">
+  <div class="cp-title">Configurare Scanner</div>
+
+  <div class="cp-grid">
+    <div class="cp-field">
+      <label>Top N coinuri (volum)</label>
+      <input class="cp-inp" id="topN" type="number" value="50" min="10" max="200">
+    </div>
+    <div class="cp-field">
+      <label>Interval scanare</label>
+      <select class="cp-inp" id="scanInterval">
+        <option value="30">30 secunde</option>
+        <option value="60" selected>1 minut</option>
+        <option value="120">2 minute</option>
+        <option value="300">5 minute</option>
+      </select>
+    </div>
+    <div class="cp-field">
+      <label>Volum minim (USDT)</label>
+      <select class="cp-inp" id="minVol">
+        <option value="500000">500K</option>
+        <option value="1000000" selected>1M</option>
+        <option value="5000000">5M</option>
+        <option value="10000000">10M</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Tipuri semnale active</div>
+  <div class="signal-toggles">
+    <div class="sig-tog on c-green" id="tog-pump" onclick="toggleSig('pump',this)">
+      <div class="tog-dot"></div>🚀 Pump rapid
+    </div>
+    <div class="sig-tog on c-red" id="tog-dump" onclick="toggleSig('dump',this)">
+      <div class="tog-dot"></div>📉 Dump rapid
+    </div>
+    <div class="sig-tog on c-gold" id="tog-volatility" onclick="toggleSig('volatility',this)">
+      <div class="tog-dot"></div>⚡ Volatilitate mare
+    </div>
+    <div class="sig-tog on c-green" id="tog-rsi-low" onclick="toggleSig('rsi-low',this)">
+      <div class="tog-dot"></div>📊 RSI Oversold
+    </div>
+    <div class="sig-tog on c-orange" id="tog-rsi-high" onclick="toggleSig('rsi-high',this)">
+      <div class="tog-dot"></div>📊 RSI Overbought
+    </div>
+    <div class="sig-tog on c-purple" id="tog-volume" onclick="toggleSig('volume',this)">
+      <div class="tog-dot"></div>📦 Volum anormal
+    </div>
+    <div class="sig-tog on c-gold" id="tog-grid" onclick="toggleSig('grid',this)">
+      <div class="tog-dot"></div>⚙️ Bun pentru Grid Bot
+    </div>
+    <div class="sig-tog on" id="tog-breakout" onclick="toggleSig('breakout',this)">
+      <div class="tog-dot"></div>💥 Breakout range
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <button class="btn-start" id="btnStart" onclick="startScanner()">▶ Pornește Scanner</button>
+    <button class="btn-stop" id="btnStop" onclick="stopScanner()" style="display:none">■ Oprește</button>
+    <span id="nextScanTxt" style="font-size:.62rem;color:var(--t3)"></span>
+  </div>
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat s-acc"><div class="stat-val" id="st-scanned" style="color:var(--acc)">0</div><div class="stat-lbl">Scanate</div></div>
+  <div class="stat s-green"><div class="stat-val" id="st-signals" style="color:var(--green)">0</div><div class="stat-lbl">Semnale</div></div>
+  <div class="stat s-red"><div class="stat-val" id="st-alerts" style="color:var(--red)">0</div><div class="stat-lbl">Alerte trimise</div></div>
+  <div class="stat s-gold"><div class="stat-val" id="st-scans" style="color:var(--gold)">0</div><div class="stat-lbl">Scanări totale</div></div>
+  <div class="stat s-purple"><div class="stat-val" id="st-top" style="color:var(--purple)">—</div><div class="stat-lbl">Top semnal</div></div>
+</div>
+
+<!-- FILTER -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="searchInp" placeholder="Caută coin..." oninput="renderSignals()">
+  </div>
+  <div class="ftag act" id="ft-all" onclick="setFilter('all',this)">Toate</div>
+  <div class="ftag" id="ft-pump" onclick="setFilter('pump',this)">🚀 Pump</div>
+  <div class="ftag" id="ft-dump" onclick="setFilter('dump',this)">📉 Dump</div>
+  <div class="ftag" id="ft-grid" onclick="setFilter('grid',this)">⚙️ Grid</div>
+  <div class="ftag" id="ft-rsi" onclick="setFilter('rsi',this)">📊 RSI</div>
+  <div class="ftag" id="ft-high" onclick="setFilter('high',this)">🔴 Prioritate</div>
+  <div class="ftag" onclick="exportCryptoSignals()" style="background:var(--accl);border-color:var(--accb);color:var(--acc)">📤 Export</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab act" onclick="setTab('live',this)">🔴 Live</div>
+  <div class="tab" onclick="setTab('all',this)">📋 Toate</div>
+  <div class="tab" onclick="setTab('reco',this)">💡 Oportunități</div>
+  <div class="tab" onclick="setTab('heatmap',this)">🗺️ Heatmap</div>
+  <div class="tab" onclick="setTab('grid',this)">⚙️ Grid Bot</div>
+  <div class="tab" onclick="setTab('history',this)">📜 Istoric</div>
+</div>
+
+<!-- SIGNALS -->
+<div id="signalsContainer"></div>
+
+<!-- LOG -->
+<div class="log-panel">
+  <div class="log-hdr">
+    <span>📡 Log scanner</span>
+    <button class="log-clear" onclick="clearLog()">Șterge log</button>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── STATE ──
+let running = false;
+let scanTimer = null;
+let cdTimer = null;
+let cdSec = 0;
+let totalScans = 0;
+let totalAlerts = 0;
+let allSignals = []; // current scan signals
+let historySignals = []; // all-time
+let allCryptoOpportunities = [];
+let cryptoPriceAlerts = {};
+let sparkCache = {};
+let cryptoFgScore = 50;
+// Restore alerts from localStorage
+(function(){
+  try{ cryptoPriceAlerts=JSON.parse(localStorage.getItem('crypto_alerts')||'{}'); }catch(e){ cryptoPriceAlerts={}; }
+})();
+let prevPrices = {}; // coin -> price (for breakout detection)
+let prevVolumes = {}; // coin -> volume
+let rsiCache = {}; // coin -> rsi value
+let currentTab = 'live';
+let currentFilter = 'all';
+let activeSigs = new Set(['pump','dump','volatility','rsi-low','rsi-high','volume','grid','breakout']);
+let audioCtx = null;
+let wakeLock = null;
+
+document.addEventListener('click',()=>{ if(!audioCtx) try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} },{once:true});
+
+// ── CRYPTO CATEGORIES ──
+const CRYPTO_CAT={
+  BTC:'Bitcoin',ETH:'Ethereum',BNB:'Exchange',SOL:'Layer 1',ADA:'Layer 1',
+  AVAX:'Layer 1',DOT:'Layer 1',ATOM:'Layer 1',NEAR:'Layer 1',APT:'Layer 1',
+  SUI:'Layer 1',FTM:'Layer 1',HBAR:'Layer 1',ALGO:'Layer 1',
+  MATIC:'Layer 2',OP:'Layer 2',ARB:'Layer 2',
+  LINK:'Oracle',BAND:'Oracle',API3:'Oracle',
+  UNI:'DeFi',AAVE:'DeFi',CRV:'DeFi',MKR:'DeFi',SNX:'DeFi',GMX:'DeFi',DYDX:'DeFi',
+  HYPE:'DeFi',INJ:'DeFi',
+  XRP:'Payments',LTC:'Payments',BCH:'Payments',XLM:'Payments',
+  DOGE:'Meme',SHIB:'Meme',PEPE:'Meme',FLOKI:'Meme',BONK:'Meme',WIF:'Meme',
+  RNDR:'AI/GPU',FET:'AI',OCEAN:'AI',AGIX:'AI',WLD:'AI',
+  SAND:'Gaming',MANA:'Gaming',AXS:'Gaming',GALA:'Gaming',IMX:'Gaming',
+  FIL:'Storage',AR:'Storage',
+  LDO:'Staking',RPL:'Staking',
+  VET:'Enterprise',THETA:'Media',
+};
+
+// ── MACRO: Crypto Fear & Greed ──
+async function fetchCryptoFearGreed(){
+  try{
+    const r=await fetch('https://api.alternative.me/fng/?limit=1',{signal:AbortSignal.timeout(5000)});
+    const d=await r.json();
+    const val=parseInt(d?.data?.[0]?.value||50);
+    const txt=d?.data?.[0]?.value_classification||'Neutral';
+    cryptoFgScore=val;
+    document.getElementById('mc-fg-val').textContent=val;
+    document.getElementById('mc-fg-needle').style.left=val+'%';
+    document.getElementById('mc-fg-txt').textContent=txt;
+    const clr=val>=60?'var(--green)':val>=40?'var(--gold)':'var(--red)';
+    document.getElementById('mc-fg-val').style.color=clr;
+  }catch(e){}
+}
+
+function updateCryptoMacro(tickers){
+  // Update BTC/ETH 24h change from tickers
+  const btc=tickers.find(t=>t.symbol==='BTCUSDT');
+  const eth=tickers.find(t=>t.symbol==='ETHUSDT');
+  if(btc){
+    const chg=parseFloat(btc.priceChangePercent);
+    const el=document.getElementById('mc-btc');
+    if(el){ el.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%'; el.style.color=chg>=0?'var(--green)':'var(--red)'; }
+  }
+  if(eth){
+    const chg=parseFloat(eth.priceChangePercent);
+    const el=document.getElementById('mc-eth');
+    if(el){ el.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%'; el.style.color=chg>=0?'var(--green)':'var(--red)'; }
+  }
+  // Market breadth
+  const up=tickers.filter(t=>parseFloat(t.priceChangePercent)>0).length;
+  const total=tickers.length;
+  const pct=Math.round(up/total*100);
+  const el=document.getElementById('mc-mkt');
+  if(el){ el.textContent=pct+'% ▲'; el.style.color=pct>=55?'var(--green)':pct>=45?'var(--gold)':'var(--red)'; }
+}
+
+// ── SPARKLINES ──
+function storeSparkline(coin, closes){
+  if(closes&&closes.length>=2) sparkCache[coin]=closes.slice(-8);
+}
+function renderSparklineCrypto(coin){
+  const prices=sparkCache[coin];
+  if(!prices||prices.length<2) return '';
+  const W=72,H=24;
+  const mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1;
+  const pts=prices.map((p,i)=>`${(i/(prices.length-1)*W).toFixed(1)},${(H-((p-mn)/rng)*(H-2)-1).toFixed(1)}`).join(' ');
+  const isUp=prices[prices.length-1]>=prices[0];
+  const chg=((prices[prices.length-1]-prices[0])/prices[0]*100);
+  return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="border-radius:4px;background:var(--bg3)">
+      <polyline points="${pts}" fill="none" stroke="${isUp?'var(--green)':'var(--red)'}" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <span style="font-size:.6rem;font-weight:700;color:${isUp?'var(--green)':'var(--red)'}">${chg>=0?'+':''}${chg.toFixed(1)}% 24h</span>
+  </div>`;
+}
+
+// ── CRYPTO OPPORTUNITY SCORING ──
+function calcCryptoOpportunityScore(coin,price,chg24,range24pct,rsi,vol24,prevVol){
+  let buyScore=50,sellScore=50;
+  const buyR=[],sellR=[];
+
+  // RSI
+  if(rsi<=22){buyScore+=30;buyR.push({t:`RSI ${rsi.toFixed(0)} — capitulare extremă. Bounceuri istorice 10–30% din această zonă.`,c:'pos'});}
+  else if(rsi<=30){buyScore+=20;buyR.push({t:`RSI ${rsi.toFixed(0)} — supravânzare clasică. Setup de acumulare.`,c:'pos'});}
+  else if(rsi<=42){buyScore+=10;buyR.push({t:`RSI ${rsi.toFixed(0)} — sub medie, bias bullish moderat.`,c:'pos'});}
+  else if(rsi>=80){buyScore-=25;sellScore+=25;sellR.push({t:`RSI ${rsi.toFixed(0)} — supracumpărat extrem. Corecție de 10–25% probabilă.`,c:'neg'});}
+  else if(rsi>=70){buyScore-=15;sellScore+=15;sellR.push({t:`RSI ${rsi.toFixed(0)} — supracumpărat. Momentum ridicat dar risc crescut.`,c:'neg'});}
+
+  // Momentum zilnic
+  if(chg24>=-12&&chg24<=-5&&rsi<=40){buyScore+=18;buyR.push({t:`Dump ${chg24.toFixed(1)}% cu RSI oversold — setup clasic de bounce.`,c:'pos'});}
+  else if(chg24>=8&&rsi<65){buyScore+=14;buyR.push({t:`Pump +${chg24.toFixed(1)}% cu RSI ok — momentum real.`,c:'pos'});}
+  else if(chg24<=-15){buyScore-=8;sellScore+=10;sellR.push({t:`Scădere brutală ${chg24.toFixed(1)}% — trend bearish activ.`,c:'neg'});}
+  else if(chg24>=15&&rsi>=68){buyScore-=10;sellScore+=12;sellR.push({t:`Pump +${chg24.toFixed(1)}% cu RSI ridicat — risc de sell-the-news.`,c:'neg'});}
+
+  // Volatilitate (pentru grid/swing)
+  if(range24pct>=10&&range24pct<=50){buyScore+=8;buyR.push({t:`Range ${range24pct.toFixed(1)}% — volatilitate bună pentru grid sau swing.`,c:'neu'});}
+
+  // Volume spike
+  if(prevVol>0&&vol24>0){
+    const vr=vol24/prevVol;
+    if(vr>=3&&chg24>0){buyScore+=15;buyR.push({t:`Volum de ${vr.toFixed(1)}× normal în direcție bullish — interes real.`,c:'pos'});}
+    else if(vr>=3&&chg24<0){sellScore+=12;sellR.push({t:`Volum de ${vr.toFixed(1)}× cu scădere — distribuție sau panică.`,c:'neg'});}
+  }
+
+  // Sparkline trend
+  const sp=sparkCache[coin];
+  if(sp&&sp.length>=4){
+    const w=((sp[sp.length-1]-sp[0])/sp[0]*100);
+    if(w>8&&chg24<0&&rsi<55){buyScore+=18;buyR.push({t:`Pullback ${chg24.toFixed(1)}% în trend ascendent (+${w.toFixed(1)}%) — oportunitate de entry.`,c:'pos'});}
+    else if(w>5){buyScore+=8;buyR.push({t:`Trend pozitiv +${w.toFixed(1)}% recent.`,c:'pos'});}
+    else if(w<-10){sellScore+=10;sellR.push({t:`Trend negativ ${w.toFixed(1)}% recent — presiune de vânzare.`,c:'neg'});}
+  }
+
+  // F&G context
+  if(cryptoFgScore>=75&&rsi>=65){sellScore+=8;sellR.push({t:`F&G ridicat (${cryptoFgScore}) + RSI overbought — piață supraîncălzită.`,c:'neg'});}
+  else if(cryptoFgScore<=25&&rsi<=40){buyScore+=12;buyR.push({t:`F&G scăzut (${cryptoFgScore}) + RSI oversold — sentiment negativ extrem = oportunitate.`,c:'pos'});}
+
+  const isBuy=buyScore>sellScore;
+  const score=Math.min(100,Math.round(isBuy?buyScore:sellScore));
+  const entry=price;
+  const tp=isBuy?price*(1+(rsi<=35?0.15:rsi<=45?0.10:0.07)):price*(1-(rsi>=75?0.12:0.08));
+  const sl=isBuy?price*(rsi<=30?0.92:0.94):price*(rsi>=75?1.08:1.06);
+  const rr=Math.abs(tp-entry)/Math.abs(sl-entry);
+  return{coin,price,chg24,rsi,range24pct,isBuy,score,buyScore:Math.min(100,Math.round(buyScore)),sellScore:Math.min(100,Math.round(sellScore)),reasons:isBuy?buyR.slice(0,4):sellR.slice(0,4),entry,tp,sl,rr:rr.toFixed(1)};
+}
+
+// ── PRICE ALERTS (CRYPTO) ──
+function saveCryptoAlert(coin,targetStr,currentPrice){
+  const target=parseFloat(targetStr);
+  if(!target||isNaN(target)){showToast('Preț invalid','err');return;}
+  cryptoPriceAlerts[coin]={target,dir:target>currentPrice?'above':'below',setPrice:currentPrice};
+  try{localStorage.setItem('crypto_alerts',JSON.stringify(cryptoPriceAlerts));}catch(e){}
+  renderSignals();
+  showToast(`⏰ Alert: ${coin} @ $${target.toFixed(target<1?6:2)}`,'ok');
+}
+function removeCryptoAlert(coin){
+  delete cryptoPriceAlerts[coin];
+  try{localStorage.setItem('crypto_alerts',JSON.stringify(cryptoPriceAlerts));}catch(e){}
+  renderSignals();
+}
+function checkCryptoAlerts(tickers){
+  let n=0;
+  for(const t of tickers){
+    const coin=t.symbol.replace('USDT','');
+    const al=cryptoPriceAlerts[coin];
+    if(!al) continue;
+    const price=parseFloat(t.lastPrice);
+    const hit=(al.dir==='above'&&price>=al.target)||(al.dir==='below'&&price<=al.target);
+    if(hit){
+      sendNotif(`⏰ ALERT: ${coin}`,`Prețul a atins $${price.toFixed(price<1?6:2)}`);
+      playSignalSound('breakout');
+      showToast(`⏰ ${coin} @ $${price.toFixed(price<1?6:2)}!`,'ok');
+      delete cryptoPriceAlerts[coin];
+      try{localStorage.setItem('crypto_alerts',JSON.stringify(cryptoPriceAlerts));}catch(e){}
+      n++;
+    }
+  }
+  return n;
+}
+function renderAlertSectionCrypto(coin,price){
+  const al=cryptoPriceAlerts[coin];
+  if(al) return `<div class="alert-section"><div class="alert-active"><span>⏰ Alert: <strong>$${al.target.toFixed(al.target<1?6:2)}</strong> (${al.dir==='above'?'↑':'↓'})</span><button onclick="removeCryptoAlert('${coin}')">✕</button></div></div>`;
+  const ph=(price*1.05).toFixed(price<1?6:2);
+  return `<div class="alert-section"><div class="alert-row"><span class="alert-lbl">⏰ Alert</span><input class="alert-inp" id="cal_${coin}" type="number" step="any" placeholder="${ph}"><button class="alert-btn" onclick="saveCryptoAlert('${coin}',document.getElementById('cal_${coin}').value,${price})">Set</button></div></div>`;
+}
+
+// ── AI ANALYSIS (Crypto) ──
+function copyAiCryptoPrompt(btn){ const ta=document.getElementById('aiCryptoTa'); if(!ta)return; ta.focus();ta.select();ta.setSelectionRange(0,99999); try{document.execCommand('copy');}catch(e){} btn.textContent='✅ Copiat!';btn.style.background='#059669'; }
+
+function analyzeWithAICrypto(coin){
+  const opp=allCryptoOpportunities.find(o=>o.coin===coin)||{};
+  const sp=sparkCache[coin];
+  const w24=sp&&sp.length>=2?((sp[sp.length-1]-sp[0])/sp[0]*100).toFixed(1)+'%':'N/A';
+  const reasons=(opp.reasons||[]).map(r=>r.t).join(', ')||'N/A';
+  const prompt='Ești analist crypto. Analizează '+coin+'/USDT ('+
+    (CRYPTO_CAT[coin]||'Crypto')+') pentru un trader român.\n\n'+
+    'DATE TEHNICE:\n'+
+    '- Preț: $'+((opp.price||0).toFixed((opp.price||0)<1?6:2))+' | 24h: '+((opp.chg24||0)>=0?'+':'')+((opp.chg24||0).toFixed(2))+'%\n'+
+    '- RSI(14) 15min: '+((opp.rsi||50).toFixed(0))+' | Range: '+((opp.range24pct||0).toFixed(1))+'%\n'+
+    '- Trend 24h sparkline: '+w24+'\n'+
+    '- Fear&Greed Index: '+cryptoFgScore+'/100\n'+
+    '- Scor oportunitate: '+((opp.score||0))+'/100 ('+(opp.isBuy?'BULLISH':'BEARISH')+')\n'+
+    '- Factori: '+reasons+'\n\n'+
+    'Raspunde in romana: stare tehnica, scenariu 24h-72h, actiune recomandata cu nivel $ specific si risc principal.';
+  function copyTxt(txt){ const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;left:-9999px;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,99999);let ok=false;try{ok=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);return ok; }
+  if(copyTxt(prompt)){ showToast('✅ Prompt copiat! Lipește în Claude.ai','ok'); setTimeout(()=>window.open('https://claude.ai/new','_blank'),800); }
+  else{
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.onclick=e=>{if(e.target===ov)ov.remove();};
+    ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:18px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">'
+      +'<div style="font-family:Sora,sans-serif;font-weight:800;margin-bottom:10px">🤖 Prompt Claude.ai — '+coin+'</div>'
+      +'<textarea id="aiCryptoTa" style="width:100%;height:160px;font-size:.6rem;font-family:monospace;border:1px solid #dde2f5;border-radius:8px;padding:8px;resize:none">'+prompt+'</textarea>'
+      +'<div style="display:flex;gap:8px;margin-top:10px">'
+      +'<button onclick="copyAiCryptoPrompt(this)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#4f46e5;color:#fff;font-weight:700;font-size:.68rem;cursor:pointer">📋 Copiază</button>'
+      +'<a href="https://claude.ai/new" target="_blank" style="flex:1;padding:8px;border-radius:8px;background:#059669;color:#fff;font-weight:700;font-size:.68rem;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center">🚀 Claude.ai</a>'
+      +'</div></div>';
+    document.body.appendChild(ov);
+    setTimeout(()=>{const ta=document.getElementById('aiCryptoTa');if(ta){ta.focus();ta.select();}},100);
+  }
+}
+function renderAISectionCrypto(coin){
+  return '<button class="ai-btn-c" onclick="analyzeWithAICrypto(\'' + coin + '\')">🤖 Analizează cu Claude.ai</button>';
+}
+
+// ── EXPORT CRYPTO ──
+function exportCryptoSignals(){
+  const buys=(allCryptoOpportunities||[]).filter(o=>o.isBuy&&o.score>=60).sort((a,b)=>b.score-a.score).slice(0,5);
+  if(!buys.length&&!allSignals.length){ showToast('Nicio scanare de exportat','err');return; }
+  const now=new Date().toLocaleString('ro-RO');
+  let txt='₿ CRYPTO SCANNER — '+now+'\n'+'─'.repeat(40)+'\n';
+  if(buys.length){
+    txt+='\n🟢 TOP CUMPĂRARE:\n';
+    buys.forEach((o,i)=>{ txt+=(i+1)+'. '+o.coin+'/USDT — Scor '+o.score+'/100\n   Preț: $'+o.price.toFixed(o.price<1?6:2)+' | 24h: '+(o.chg24>=0?'+':'')+o.chg24.toFixed(2)+'% | RSI: '+o.rsi.toFixed(0)+'\n   Entry: $'+o.entry.toFixed(o.price<1?6:2)+' | TP: $'+o.tp.toFixed(o.price<1?6:2)+' | SL: $'+o.sl.toFixed(o.price<1?6:2)+'\n'; });
+  }
+  const topSig=allSignals.slice(0,5);
+  if(topSig.length){ txt+='\n⚡ TOP SEMNALE:\n'; topSig.forEach(s=>{ txt+='• '+s.coin+' — '+s.title+' ('+s.strength+'%)\n'; }); }
+  txt+='\n'+'─'.repeat(40)+'\nGenerat de Crypto Scanner';
+  const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;left:-9999px;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,99999);
+  try{document.execCommand('copy');showToast('📋 Exportat în clipboard!','ok');}catch(e){showToast('❌ Copierea nu a funcționat','err');}
+  document.body.removeChild(ta);
+}
+
+// ── HEATMAP (CRYPTO) ──
+function calcCryptoCategoryData(){
+  const map={};
+  for(const opp of (allCryptoOpportunities||[])){
+    const cat=CRYPTO_CAT[opp.coin]||'Altele';
+    if(!map[cat]) map[cat]={chgs:[],coins:[]};
+    map[cat].chgs.push(opp.chg24);
+    map[cat].coins.push({c:opp.coin,chg:opp.chg24});
+  }
+  const res={};
+  for(const [cat,d] of Object.entries(map)){
+    const avg=d.chgs.reduce((a,b)=>a+b,0)/d.chgs.length;
+    const sorted=[...d.coins].sort((a,b)=>b.chg-a.chg);
+    res[cat]={avg,count:d.coins.length,best:sorted[0],worst:sorted[sorted.length-1]};
+  }
+  return res;
+}
+function hmColor(avg){ if(avg>=5)return{bg:'#065f46',t:'#fff'}; if(avg>=2)return{bg:'#059669',t:'#fff'}; if(avg>=0.5)return{bg:'#34d399',t:'#064e3b'}; if(avg>=-0.5)return{bg:'#94a3b8',t:'#fff'}; if(avg>=-2)return{bg:'#fca5a5',t:'#7f1d1d'}; if(avg>=-5)return{bg:'#ef4444',t:'#fff'}; return{bg:'#991b1b',t:'#fff'}; }
+
+function renderCryptoHeatmap(){
+  const container=document.getElementById('signalsContainer');
+  if(!allCryptoOpportunities||!allCryptoOpportunities.length){
+    container.innerHTML='<div class="empty"><div class="empty-icon">🗺️</div><div class="empty-title">Nicio scanare</div><div class="empty-sub">Pornește scanner-ul pentru heatmap.</div></div>';return;
+  }
+  const data=calcCryptoCategoryData();
+  const cats=Object.entries(data).sort((a,b)=>b[1].avg-a[1].avg);
+  const tiles=cats.map(([cat,d])=>{
+    const {bg,t}=hmColor(d.avg);
+    const sign=d.avg>=0?'+':'';
+    return '<div class="hm-tile" style="background:'+bg+'">'
+      +'<div class="hm-cat" style="color:'+t+'88">'+cat+'</div>'
+      +'<div class="hm-chg" style="color:'+t+'">'+sign+d.avg.toFixed(2)+'%</div>'
+      +'<div class="hm-cnt" style="color:'+t+'99">'+d.count+' coins</div>'
+      +(d.best?'<div class="hm-best" style="color:'+t+'99">▲ '+d.best.c+' '+(d.best.chg>=0?'+':'')+d.best.chg.toFixed(1)+'%</div>':'')
+      +'</div>';
+  }).join('');
+  const avgAll=cats.reduce((s,[,d])=>s+d.avg,0)/(cats.length||1);
+  const clr=avgAll>=0?'var(--green)':'var(--red)';
+  container.innerHTML='<div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<div style="font-family:var(--head);font-weight:700;font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px">🗺️ Heatmap Categorii Crypto</div>'
+    +'<div style="font-family:var(--head);font-weight:800;font-size:.9rem;color:'+clr+'">'+(avgAll>=0?'+':'')+avgAll.toFixed(2)+'% avg</div>'
+    +'</div>'
+    +'<div class="hm-grid">'+tiles+'</div>'
+    +'<div style="font-size:.56rem;color:var(--t3);margin-top:10px;text-align:center">Verde = sector bullish · Roșu = sell-off · Actualizat la fiecare scan</div>'
+    +'</div>';
+}
+
+// ── RECO (CRYPTO) ──
+function renderCryptoRecommendations(){
+  const container=document.getElementById('signalsContainer');
+  if(!allCryptoOpportunities||!allCryptoOpportunities.length){
+    container.innerHTML='<div class="empty"><div class="empty-icon">💡</div><div class="empty-title">Nicio scanare</div><div class="empty-sub">Pornește scanner-ul. Tab-ul Oportunități se populează după primul scan complet.</div></div>';return;
+  }
+  const buys=allCryptoOpportunities.filter(o=>o.isBuy&&o.score>=52).sort((a,b)=>b.score-a.score).slice(0,8);
+  const sells=allCryptoOpportunities.filter(o=>!o.isBuy&&o.score>=52).sort((a,b)=>b.score-a.score).slice(0,4);
+  const card=o=>{
+    const isBuy=o.isBuy; const strong=o.score>=75;
+    const clr=isBuy?'var(--green)':'var(--red)';
+    const vInfo=o.score>=80?(isBuy?{c:'rv-buy-s',t:'🟢 Cumpără Acum'}:{c:'rv-sell-s',t:'🔴 Short/Vinde'})
+      :o.score>=65?(isBuy?{c:'rv-buy',t:'🟡 Cumpără Pullback'}:{c:'rv-sell',t:'🟠 Precauție'}):{c:'rv-neu',t:'⚪ Monitorizează'};
+    const sparkH=renderSparklineCrypto(o.coin);
+    const tdH='<div class="trade-detail" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;margin-bottom:8px">'
+      +'<div><div style="font-size:.5rem;color:var(--t3);text-transform:uppercase">📍 Entry</div><div style="font-size:.66rem;font-weight:700">$'+o.entry.toFixed(o.price<1?6:2)+'</div></div>'
+      +'<div><div style="font-size:.5rem;color:var(--t3);text-transform:uppercase">🎯 Target</div><div style="font-size:.66rem;font-weight:700;color:var(--green)">$'+o.tp.toFixed(o.price<1?6:2)+'</div></div>'
+      +'<div><div style="font-size:.5rem;color:var(--t3);text-transform:uppercase">🛡️ Stop</div><div style="font-size:.66rem;font-weight:700;color:var(--red)">$'+o.sl.toFixed(o.price<1?6:2)+' <span style="font-size:.46rem;font-weight:800">R:R '+o.rr+':1</span></div></div>'
+      +'</div>';
+    const reasonsH=o.reasons.map(r=>'<div class="reco-reason"><div class="rdot '+r.c+'"></div><span>'+r.t+'</span></div>').join('');
+    const tvUrl='https://www.tradingview.com/chart/?symbol=BINANCE:'+o.coin+'USDT';
+    const pxUrl='https://www.pionex.com/en/trade/'+o.coin+'_USDT';
+    return '<div class="reco-card '+(strong?(isBuy?'buy-s':'sell-s'):'')+'"><div class="'+(isBuy?'reco-stripe-b':'reco-stripe-s')+'"></div><div class="reco-body">'
+      +'<div class="reco-top"><div class="reco-info"><div class="reco-ticker">'+o.coin+(cryptoPriceAlerts[o.coin]?'<span style="font-size:.55rem;color:var(--gold);margin-left:4px">⏰</span>':'')+'<span style="font-size:.5rem;font-weight:600;background:var(--bg3);border:1px solid var(--b1);border-radius:4px;padding:1px 6px;margin-left:6px;color:var(--t3)">'+(CRYPTO_CAT[o.coin]||'Crypto')+'</span></div>'
+      +'<div class="reco-price">$'+o.price.toFixed(o.price<1?6:o.price<100?4:2)+' <span style="font-size:.62rem;font-weight:700;color:'+(o.chg24>=0?'var(--green)':'var(--red)')+';">'+(o.chg24>=0?'+':'')+o.chg24.toFixed(2)+'%</span></div></div>'
+      +'<div style="text-align:right"><div class="reco-score '+(isBuy?'buy':'sell')+'">'+o.score+'</div><div class="reco-score-lbl">scor/100</div></div></div>'
+      +'<div class="'+vInfo.c+' reco-verdict">'+vInfo.t+'</div>'
+      +'<div class="conf-wrap"><div class="conf-row"><span>Încredere</span><span style="color:'+clr+';font-weight:700">'+o.score+'%</span></div><div class="conf-track"><div class="conf-fill" style="width:'+o.score+'%;background:'+clr+'"></div></div></div>'
+      +'<div class="reco-reasons">'+reasonsH+'</div>'
+      +sparkH+tdH
+      +'<div class="sig-actions"><a class="btn-sig" href="'+tvUrl+'" target="_blank">📈 TradingView</a><a class="btn-sig" href="'+pxUrl+'" target="_blank">⚡ Pionex</a></div>'
+      +renderAISectionCrypto(o.coin)
+      +renderAlertSectionCrypto(o.coin,o.price)
+      +'</div></div>';
+  };
+  let html='<div class="reco-grid">';
+  if(buys.length) html+='<div class="reco-sec buy">🟢 Top '+buys.length+' Oportunități Cumpărare</div>'+buys.map(card).join('');
+  if(sells.length) html+='<div class="reco-sec sell" style="margin-top:14px">🔴 Top '+sells.length+' Risc/Short</div>'+sells.map(card).join('');
+  if(!buys.length&&!sells.length) html+='<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Nicio oportunitate clară</div><div class="empty-sub">Niciun coin nu depășește pragul de scor 55 momentan.</div></div>';
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+
+// ── INIT ──
+updateNotifBtn();
+log('Scanner inițializat. Apasă ▶ Pornește.','info');
+fetchCryptoFearGreed();
+renderSignals();
+
+// ── NOTIFICATIONS ──
+function updateNotifBtn(){
+  const b=document.getElementById('notifBtn');
+  if(!('Notification' in window)){b.textContent='🔕 N/A';b.className='notif-btn denied';return;}
+  if(Notification.permission==='granted'){b.textContent='🔔 Active';b.className='notif-btn granted';}
+  else if(Notification.permission==='denied'){b.textContent='🚫 Blocate';b.className='notif-btn denied';}
+}
+async function requestNotif(){
+  if(!('Notification' in window)||Notification.permission!=='default')return;
+  await Notification.requestPermission();
+  updateNotifBtn();
+}
+function sendNotif(title,body){
+  if(Notification.permission==='granted'){
+    try{new Notification('🔭 '+title,{body,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23f4f6ff"/><text y="70" x="50" text-anchor="middle" font-size="60">🔭</text></svg>'});}catch(e){}
+  }
+}
+
+// ── WAKE LOCK ──
+async function acquireWakeLock(){
+  if(!('wakeLock' in navigator))return;
+  try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
+}
+document.addEventListener('visibilitychange',async()=>{
+  if(running&&document.visibilityState==='visible'&&(!wakeLock||wakeLock.released))
+    await acquireWakeLock();
+});
+
+// ── SIGNAL TOGGLES ──
+function toggleSig(key,el){
+  if(activeSigs.has(key)){activeSigs.delete(key);el.classList.remove('on','c-green','c-red','c-gold','c-purple','c-orange');}
+  else{activeSigs.add(key);const orig=el.className.replace(' on','').replace(/c-\w+/g,'').trim();el.className=orig+' on';}
+}
+
+// ── SCANNER CONTROL ──
+async function startScanner(){
+  if(running)return;
+  running=true;
+  document.getElementById('btnStart').style.display='none';
+  document.getElementById('btnStop').style.display='inline-block';
+  document.getElementById('sdot').className='sdot scanning';
+  document.getElementById('statusTxt').textContent='SCANARE...';
+  document.getElementById('progressBar').classList.add('show');
+  acquireWakeLock();
+  log('▶ Scanner pornit!','ok');
+  await runScan();
+}
+
+function stopScanner(){
+  running=false;
+  clearTimeout(scanTimer);clearInterval(cdTimer);
+  document.getElementById('btnStart').style.display='inline-block';
+  document.getElementById('btnStop').style.display='none';
+  document.getElementById('sdot').className='sdot';
+  document.getElementById('statusTxt').textContent='OPRIT';
+  document.getElementById('progressBar').classList.remove('show');
+  document.getElementById('nextScanTxt').textContent='';
+  if(wakeLock){wakeLock.release();wakeLock=null;}
+  log('■ Scanner oprit.','warn');
+}
+
+function startCountdown(){
+  clearInterval(cdTimer);
+  const secs=parseInt(document.getElementById('scanInterval').value)||60;
+  cdSec=secs;
+  document.getElementById('nextScanTxt').textContent=`Următor scan: ${cdSec}s`;
+  cdTimer=setInterval(()=>{
+    cdSec--;
+    document.getElementById('nextScanTxt').textContent=`Următor scan: ${cdSec}s`;
+    if(cdSec<=0){clearInterval(cdTimer);if(running)runScan();}
+  },1000);
+}
+
+// ── MAIN SCAN ──
+async function runScan(){
+  if(!running)return;
+  document.getElementById('sdot').className='sdot scanning';
+  document.getElementById('statusTxt').textContent='SCANARE...';
+  setProgress(0);
+  log(`🔍 Scanare #${totalScans+1} — top ${document.getElementById('topN').value} coinuri...`,'info');
+
+  // Step 1: Fetch all tickers
+  setProgress(10,'Fetch tickers...');
+  let tickers=[];
+  try{
+    const res=await fetch('https://api.binance.com/api/v3/ticker/24hr',{signal:AbortSignal.timeout(8000)});
+    if(!res.ok)throw new Error();
+    const all=await res.json();
+    const minVol=parseFloat(document.getElementById('minVol').value)||1000000;
+    const topN=parseInt(document.getElementById('topN').value)||50;
+    tickers=all
+      .filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('DOWN')&&!t.symbol.includes('UP')&&!t.symbol.includes('BEAR')&&!t.symbol.includes('BULL'))
+      .filter(t=>parseFloat(t.quoteVolume)>=minVol)
+      .sort((a,b)=>parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume))
+      .slice(0,topN);
+  }catch(e){
+    log('❌ Eroare fetch tickers: '+e.message,'err');
+    document.getElementById('sdot').className='sdot live';
+    document.getElementById('statusTxt').textContent='EROARE';
+    startCountdown();return;
+  }
+
+  document.getElementById('st-scanned').textContent=tickers.length;
+  setProgress(20,`Analizez ${tickers.length} coinuri...`);
+
+  // Step 2: Analyze each coin
+  const newSignals=[];
+  for(let i=0;i<tickers.length;i++){
+    if(!running)break;
+    const t=tickers[i];
+    const coin=t.symbol.replace('USDT','');
+    setProgress(20+(i/tickers.length*65),coin);
+
+    const price=parseFloat(t.lastPrice);
+    const chg24=parseFloat(t.priceChangePercent);
+    const high24=parseFloat(t.highPrice);
+    const low24=parseFloat(t.lowPrice);
+    const vol24=parseFloat(t.quoteVolume);
+    const range24pct=(high24-low24)/low24*100;
+    const prevVol=prevVolumes[coin]||vol24;
+    const volRatio=vol24/Math.max(prevVol,1);
+
+    // Fetch klines for RSI (15m, 20 candles — lightweight)
+    let rsi=rsiCache[coin]||50;
+    let klines=null;
+    try{
+      const kr=await fetch(`https://api.binance.com/api/v3/klines?symbol=${t.symbol}&interval=15m&limit=20`,{signal:AbortSignal.timeout(4000)});
+      if(kr.ok){
+        klines=await kr.json();
+        rsi=calcRSI(klines.map(k=>parseFloat(k[4])),14);
+        rsiCache[coin]=rsi;
+        storeSparkline(coin,klines.map(k=>parseFloat(k[4])));
+      }
+    }catch(e){}
+
+    // ── SIGNAL DETECTION ──
+
+    // 1. PUMP rapid
+    if(activeSigs.has('pump')&&chg24>=8){
+      const strength=Math.min(100,chg24*5);
+      const priority=chg24>=20?'high':chg24>=12?'med':'low';
+      const volCtx=vol24>=1e9?`Volum masiv <strong>${(vol24/1e9).toFixed(1)}B USDT</strong> — mișcarea e susținută de capital real.`
+        :vol24>=1e8?`Volum ridicat <strong>${(vol24/1e6).toFixed(0)}M USDT</strong> — lichiditate bună.`
+        :`Volum moderat (${(vol24/1e6).toFixed(0)}M USDT) — urmărește confirmarea.`;
+      const rsiCtx=rsi>=80?`<span class="warn">⚠️ RSI ${rsi.toFixed(0)} — supracumpărat extrem. Risc ridicat de revers brusc. NU urmări breakout-ul — așteaptă o corecție de min 5–8% pentru entry.</span>`
+        :rsi>=70?`<span class="warn">RSI ${rsi.toFixed(0)} — momentum extrem. Scalperii cu experiență pot intra cu stop tight, dar riscul de revers este real.</span>`
+        :rsi>=55?`<span class="good">RSI ${rsi.toFixed(0)} — momentum solid, spațiu tehnic disponibil. Entry la pullback spre ${formatP(price*0.97)} are raport risc/recompensă bun.</span>`
+        :`<span class="good">RSI ${rsi.toFixed(0)} — pump cu RSI scăzut = rare ori. Semnal puternic de continuare. Volum în confirmare este esențial.</span>`;
+      const entryZone=rsi>=70?`${formatP(price*0.95)}–${formatP(price*0.97)}`:`${formatP(price*0.98)}–${formatP(price)}`;
+      const tp1=formatP(price*(1+Math.min(chg24*0.3,0.15)/100*100/100));
+      const sl=formatP(price*(rsi>=70?0.93:0.95));
+      const sugg=rsi>=75?'wait':chg24>=20?'scalp':'long';
+      const desc=`<strong>${coin}</strong> a crescut <strong>+${chg24.toFixed(1)}%</strong> în 24h. ${volCtx} ${rsiCtx}`;
+      const td={entry:entryZone,tp:`${formatP(price*1.08)}–${formatP(price*1.15)}`,sl,risc:rsi>=75?'RIDICAT':chg24>=15?'MEDIU':'SCĂZUT'};
+      newSignals.push(makeSignal(coin,'pump','🚀 Pump Rapid',desc,{chg24,rsi,vol24,range24pct},price,chg24,strength,priority,sugg,td));
+    }
+
+    // 2. DUMP rapid
+    if(activeSigs.has('dump')&&chg24<=-8){
+      const strength=Math.min(100,Math.abs(chg24)*5);
+      const priority=chg24<=-20?'high':chg24<=-12?'med':'low';
+      const rsiCtx=rsi<=20?`<span class="good">RSI ${rsi.toFixed(0)} — supravânzut extrem. Bounce tehnic iminent este probabil. DCA-ul în tranșe poate fi justificat.</span>`
+        :rsi<=30?`<span class="good">RSI ${rsi.toFixed(0)} — zonă clasică de supravânzare. Cumpărătorii pe termen scurt pot găsi oportunități, dar confirmarea volumului de cumpărare este necesară.</span>`
+        :rsi<=45?`<span class="warn">RSI ${rsi.toFixed(0)} — momentul de vânzare continuă. Nu prinde cuțitul — așteaptă stabilizarea prețului (2–3 lumânări consecutive fără new low).</span>`
+        :`<span class="warn">RSI ${rsi.toFixed(0)} — dump cu RSI ridicat = presiune de vânzare distribuită. Risc de continuare semnificativ.</span>`;
+      const volCtx=vol24>=5e8?`Volum de vânzare ridicat <strong>${(vol24/1e6).toFixed(0)}M USDT</strong> — capitulare posibilă.`:`Volum <strong>${(vol24/1e6).toFixed(0)}M USDT</strong>.`;
+      const bounceTarget=formatP(price*1.05);
+      const sugg=rsi<=25?'dca':rsi<=35?'wait':'wait';
+      const desc=`<strong>${coin}</strong> a scăzut <strong>${chg24.toFixed(1)}%</strong> în 24h. ${volCtx} ${rsiCtx} Support tehnic estimat la <strong>${formatP(low24)}</strong>. Bounce spre <strong>${bounceTarget}</strong> posibil dacă volumul de cumpărare apare.`;
+      const td={entry:`${formatP(price*0.98)}–${formatP(low24*1.01)}`,tp:bounceTarget,sl:formatP(low24*0.97),risc:rsi>=45?'RIDICAT':'MEDIU'};
+      newSignals.push(makeSignal(coin,'dump','📉 Dump Rapid',desc,{chg24,rsi,vol24,range24pct},price,chg24,strength,priority,sugg,td));
+    }
+
+    // 3. VOLATILITATE mare (bun pentru grid)
+    if(activeSigs.has('volatility')&&range24pct>=15&&range24pct<=80){
+      const strength=Math.min(100,range24pct*2);
+      const gridLow=price*(1-range24pct/100*0.6);
+      const gridHigh=price*(1+range24pct/100*0.6);
+      const nrLinii=range24pct>=30?80:range24pct>=20?60:40;
+      const profEstim=(range24pct*0.7/nrLinii*100).toFixed(2);
+      const trendCtx=chg24>=5?`Trend actual: <span class="warn">bullish (+${chg24.toFixed(1)}%)</span> — consideră setarea gridului mai sus față de preț curent.`
+        :chg24<=-5?`Trend actual: <span class="warn">bearish (${chg24.toFixed(1)}%)</span> — setează gridul centrat pe support, nu pe preț curent.`
+        :`Trend lateral (${chg24>=0?'+':''}${chg24.toFixed(1)}%) — ideal pentru grid neutru.`;
+      const rsiCtx=rsi>=65?` RSI ${rsi.toFixed(0)} sugereaza poziționare în jumătatea inferioară a rangului.`:rsi<=35?` RSI ${rsi.toFixed(0)} sugerează potențial de revenire — gridul poate fi poziționat mai sus.`:'';
+      const desc=`Gama 24h: <strong>${range24pct.toFixed(1)}%</strong> — interval <strong>${formatP(low24)} → ${formatP(high24)}</strong>. ${trendCtx}${rsiCtx} <span class="muted">Grid bot cu ${nrLinii} linii geometrice pe această gamă generează aprox. <strong>${profEstim}% profit/linie</strong> per ciclu complet.</span>`;
+      const td={entry:`${formatP(gridLow)} – ${formatP(gridHigh)}`,tp:`${profEstim}%/linie`,sl:`Sub ${formatP(gridLow*0.97)}`,risc:'SCĂZUT'};
+      newSignals.push(makeSignal(coin,'volatility','⚡ Volatilitate Optimă',desc,{chg24,rsi,vol24,range24pct,low24,high24},price,chg24,strength,'med','grid',td));
+    }
+
+    // 4. RSI Oversold
+    if(activeSigs.has('rsi-low')&&rsi<=30&&klines){
+      const strength=Math.min(100,(35-rsi)*5);
+      const priority=rsi<=20?'high':'med';
+      const deepCtx=rsi<=20?`<span class="good">RSI ${rsi.toFixed(0)} — capitulare extremă. Istoric, astfel de niveluri preced bounceuri de 10–25% pe termen scurt.</span>`
+        :`<span class="good">RSI ${rsi.toFixed(0)} — supravânzare clasică pe 15m. Zona de acumulare pentru traderi cu răbdare.</span>`;
+      const confCtx=chg24<=-10?` Coin-ul a scăzut deja <strong>${chg24.toFixed(1)}%</strong> azi — vânzătorii pot fi epuizați.`
+        :chg24<0?` Scădere moderată de <strong>${chg24.toFixed(1)}%</strong> intraday — RSI low nu din cădere liberă.`
+        :` Prețul este relativ stabil pe 24h (+${chg24.toFixed(1)}%) dar RSI comprimat — acumulare silențioasă posibilă.`;
+      const entryZone=`${formatP(price*0.99)}–${formatP(price*1.01)}`;
+      const tp1=formatP(price*1.07);const tp2=formatP(price*1.12);
+      const desc=`${deepCtx}${confCtx} <span class="muted">Strategie: cumpărare în tranșe la preț curent și la ${formatP(price*0.97)} dacă scade mai mult. TP1 <strong>${tp1}</strong> (+7%), TP2 <strong>${tp2}</strong> (+12%). Stop hard sub ${formatP(low24*0.98)}.</span>`;
+      const td={entry:entryZone,tp:`${tp1} / ${tp2}`,sl:formatP(low24*0.98),risc:rsi<=20?'SCĂZUT':'MEDIU'};
+      newSignals.push(makeSignal(coin,'rsi-low','📊 RSI Oversold',desc,{chg24,rsi,vol24,range24pct},price,chg24,strength,priority,'dca',td));
+    }
+
+    // 5. RSI Overbought
+    if(activeSigs.has('rsi-high')&&rsi>=70&&klines){
+      const strength=Math.min(100,(rsi-65)*5);
+      const priority=rsi>=85?'high':'med';
+      const extCtx=rsi>=85?`<span class="warn">RSI ${rsi.toFixed(0)} — supracumpărat extrem. Reversal brusc posibil oricând. Traderii long ar trebui să securizeze profiturile.</span>`
+        :`<span class="warn">RSI ${rsi.toFixed(0)} — supracumpărat. Momentum ridicat, dar spațiu tehnic limitat. Evită intrări noi long fără confirmare suplimentară.</span>`;
+      const trendCtx=chg24>=15?` Coin-ul a crescut deja <strong>+${chg24.toFixed(1)}%</strong> azi — orice long nou are risc asimetric negativ.`
+        :chg24>=5?` Creștere de <strong>+${chg24.toFixed(1)}%</strong> intraday.`:` Mișcare 24h: <strong>+${chg24.toFixed(1)}%</strong>.`;
+      const shortEntry=formatP(price);
+      const tp=formatP(price*0.93);
+      const desc=`${extCtx}${trendCtx} <span class="muted">Traderii short pot lua în considerare intrare la <strong>${shortEntry}</strong> cu target la revenire spre <strong>${tp}</strong> (–7%). Confirmare: volum în scădere pe lumânările up.</span>`;
+      const td={entry:formatP(price),tp,sl:formatP(price*1.05),risc:rsi>=85?'MEDIU':'RIDICAT'};
+      newSignals.push(makeSignal(coin,'rsi-high','📊 RSI Overbought',desc,{chg24,rsi,vol24,range24pct},price,chg24,strength,priority,'wait',td));
+    }
+
+    // 6. Volum anormal
+    if(activeSigs.has('volume')&&prevVolumes[coin]){
+      const volSpike=vol24/prevVolumes[coin];
+      if(volSpike>=2){
+        const strength=Math.min(100,volSpike*20);
+        const priority=volSpike>=5?'high':volSpike>=3?'med':'low';
+        const dirCtx=chg24>=2?`<span class="good">Volumul însoțește o mișcare BULLISH (+${chg24.toFixed(1)}%) — smart money intră.</span>`
+          :chg24<=-2?`<span class="warn">Volumul însoțește o mișcare BEARISH (${chg24.toFixed(1)}%) — distribuție posibilă sau capitulare.</span>`
+          :`<span class="warn">Volumul explodează dar prețul e staționar — acumulare silențioasă sau manipulare pre-mișcare.</span>`;
+        const spikeCtx=volSpike>=5?`Spike masiv de <strong>${volSpike.toFixed(1)}×</strong> față de scanarea anterioară — eveniment major în desfășurare (știre, listing, whale alert).`
+          :volSpike>=3?`Spike semnificativ de <strong>${volSpike.toFixed(1)}×</strong> față de normal — activitate instituțională sau retail FOMO.`
+          :`Volum crescut de <strong>${volSpike.toFixed(1)}×</strong> față de scanarea anterioară.`;
+        const nextMove=chg24>=2?`Dacă volumul persistă, target realist: <strong>${formatP(price*1.1)}</strong> (+10%).`
+          :chg24<=-2?`Dacă vânzările continuă, support cheie: <strong>${formatP(low24)}</strong>.`
+          :`Urmărește direcția în care se rupe prețul — volumul precede mișcarea.`;
+        const sugg=chg24>=2?'long':chg24<=-2?'wait':'wait';
+        const desc=`${spikeCtx} ${dirCtx} ${nextMove} <span class="muted">Vol curent: <strong>${vol24>=1e9?(vol24/1e9).toFixed(2)+'B':(vol24/1e6).toFixed(0)+'M'} USDT</strong>.</span>`;
+        const td={entry:chg24>=2?`${formatP(price*0.99)}–${formatP(price)}`:'Confirmă direcția',tp:chg24>=2?formatP(price*1.1):'N/A',sl:chg24>=2?formatP(price*0.95):formatP(price*0.97),risc:volSpike>=5?'RIDICAT':'MEDIU'};
+        newSignals.push(makeSignal(coin,'volume','📦 Volum Anormal',desc,{chg24,rsi,vol24,volSpike,range24pct},price,chg24,strength,priority,sugg,td));
+      }
+    }
+
+    // 7. Bun pentru Grid Bot
+    if(activeSigs.has('grid')){
+      const gridScore=calcGridScore(chg24,range24pct,rsi,vol24);
+      if(gridScore>=65){
+        const strength=gridScore;
+        const sugLow=price*0.88, sugHigh=price*1.12;
+        const nrGriduri=gridScore>=85?80:gridScore>=75?60:50;
+        const profPerGrid=((sugHigh-sugLow)/sugLow/nrGriduri*100).toFixed(3);
+        const investCtx=`Cu o investiție de 100 USDT pe ${nrGriduri} linii = <strong>${(100/nrGriduri).toFixed(1)} USDT/celulă</strong>.`;
+        const rsiCtx=rsi>=55?` RSI ${rsi.toFixed(0)} — consideră un grid mai jos de prețul curent (bear-leaning).`:rsi<=45?` RSI ${rsi.toFixed(0)} — grid centrat sus față de preț curent (bull-leaning).`:` RSI neutru ${rsi.toFixed(0)} — grid centrat perfect pe prețul curent.`;
+        const volCtx=vol24>=1e8?` Volum ridicat asigură execuții rapide ale ordinelor de grid.`:` Volum decent — ordinele se vor executa, posibil cu mici slippage.`;
+        const desc=`Scor compatibilitate grid: <strong>${gridScore}/100</strong>. Range 24h ${range24pct.toFixed(1)}% cu RSI echilibrat (${rsi.toFixed(0)}) și volum sănătos.${rsiCtx}${volCtx} ${investCtx} Profit estimat per ciclu complet: <strong>~${(parseFloat(profPerGrid)*nrGriduri).toFixed(2)}%</strong>.`;
+        const td={entry:`${formatP(sugLow)} – ${formatP(sugHigh)}`,tp:`~${profPerGrid}%/linie`,sl:`Sub ${formatP(sugLow*0.96)}`,risc:'SCĂZUT'};
+        newSignals.push(makeSignal(coin,'grid','⚙️ Grid Bot Recomandat',desc,{chg24,rsi,vol24,range24pct,gridScore,sugLow,sugHigh},price,chg24,strength,'low','grid',td));
+      }
+    }
+
+    // 8. Breakout din range 24h
+    if(activeSigs.has('breakout')&&prevPrices[coin]){
+      const prev=prevPrices[coin];
+      const pctMove=Math.abs((price-prev)/prev*100);
+      if(pctMove>=3){
+        const isBull=price>prev;
+        const dir=isBull?'sus':'jos';
+        const strength=Math.min(100,pctMove*10);
+        const priority=pctMove>=7?'high':pctMove>=5?'med':'low';
+        const confCtx=isBull
+          ?(vol24>=5e7?`<span class="good">Breakout BULLISH confirmat cu volum (${(vol24/1e6).toFixed(0)}M USDT). Continuare probabilă.</span>`
+            :`<span class="warn">Breakout bullish fără volum convingător — risc de fakeout.</span>`)
+          :(rsi<=35?`<span class="good">Breakout bearish cu RSI supravânzut (${rsi.toFixed(0)}) — bounce tehnic posibil.</span>`
+            :`<span class="warn">Breakout BEARISH cu momentum în scădere. Evită long — confirmă support înainte de intrare.</span>`);
+        const nextLvl=isBull?`Target imediat: <strong>${formatP(price*1.05)}</strong> (+5%). Rezistență majoră la <strong>${formatP(high24)}</strong>.`
+          :`Support imediat: <strong>${formatP(price*0.95)}</strong> (–5%). Zona de suport cheie la <strong>${formatP(low24)}</strong>.`;
+        const sugg=isBull?(vol24>=5e7?'scalp':'wait'):'wait';
+        const desc=`Mișcare bruscă de <strong>${pctMove.toFixed(1)}% ${dir}</strong> față de scanarea anterioară (<strong>${formatP(prev)} → ${formatP(price)}</strong>). ${confCtx} ${nextLvl} <span class="muted">RSI: ${rsi.toFixed(0)} | Vol 24h: ${vol24>=1e9?(vol24/1e9).toFixed(1)+'B':(vol24/1e6).toFixed(0)+'M'} USDT</span>`;
+        const td={entry:isBull?`${formatP(price)}–${formatP(price*1.01)}`:`${formatP(price*0.99)}–${formatP(price)}`,tp:isBull?formatP(price*1.05):formatP(price*0.95),sl:isBull?formatP(price*0.96):formatP(price*1.04),risc:pctMove>=7?'RIDICAT':'MEDIU'};
+        newSignals.push(makeSignal(coin,'breakout','💥 Mișcare Bruscă',desc,{chg24,rsi,vol24,pctMove,range24pct},price,chg24,strength,priority,sugg,td));
+      }
+    }
+
+    prevPrices[coin]=price;
+    prevVolumes[coin]=vol24;
+    await sleep(80);
+  }
+
+  // Sort by strength desc
+  newSignals.sort((a,b)=>b.strength-a.strength);
+
+  // Notify high priority new signals
+  const highPrio=newSignals.filter(s=>s.priority==='high');
+  highPrio.slice(0,3).forEach(s=>{
+    const isNew=!allSignals.find(old=>old.coin===s.coin&&old.type===s.type);
+    if(isNew){
+      sendNotif(`${s.coin} — ${s.title}`,s.desc.replace(/<[^>]+>/g,''));
+      totalAlerts++;
+      playSignalSound(s.type);
+    }
+  });
+
+  // Medium priority — notify up to 2
+  const medPrio=newSignals.filter(s=>s.priority==='med'&&activeSigs.has(s.type));
+  medPrio.slice(0,2).forEach(s=>{
+    const isNew=!allSignals.find(old=>old.coin===s.coin&&old.type===s.type);
+    if(isNew) sendNotif(`${s.coin} — ${s.title}`,s.desc.replace(/<[^>]+>/g,''));
+  });
+
+  allSignals=newSignals;
+  historySignals=[...newSignals,...historySignals].slice(0,500);
+
+  totalScans++;
+  updateStats(newSignals);
+  renderSignals();
+  setProgress(100,'Complet ✓');
+  log(`✅ ${newSignals.length} semnale găsite | High:${highPrio.length} | Med:${medPrio.length}`,'ok');
+
+  setTimeout(()=>{
+    document.getElementById('sdot').className='sdot live';
+    document.getElementById('statusTxt').textContent='ACTIV';
+    document.getElementById('progressBar').classList.remove('show');
+    setProgress(0);
+  },600);
+
+  if(running) startCountdown();
+
+  // Scoring oportunități (tickers e deja slice-uit la topN)
+  await new Promise(r=>setTimeout(r,0));
+  allCryptoOpportunities=[];
+  for(const t of tickers){
+    const coin=t.symbol.replace('USDT','');
+    const price=parseFloat(t.lastPrice);
+    const chg24=parseFloat(t.priceChangePercent);
+    const high24=parseFloat(t.highPrice),low24=parseFloat(t.lowPrice);
+    const vol24=parseFloat(t.quoteVolume);
+    const range24pct=low24>0?(high24-low24)/low24*100:0;
+    const rsi=rsiCache[coin]||50;
+    const prevVol=prevVolumes[coin]||0;
+    allCryptoOpportunities.push(calcCryptoOpportunityScore(coin,price,chg24,range24pct,rsi,vol24,prevVol));
+  }
+
+  // Verifică price alerts
+  checkCryptoAlerts(tickers);
+
+  // Update macro bar
+  updateCryptoMacro(tickers);
+
+  log(`💡 ${allCryptoOpportunities.filter(o=>o.score>=52).length} oportunități detectate (din ${allCryptoOpportunities.length} scanate)`, 'ok');
+
+  // Hub sync
+  try{
+    localStorage.setItem('crypto_last_scan',JSON.stringify({
+      timestamp:Date.now(),
+      signals:newSignals.slice(0,20).map(s=>({coin:s.coin,type:s.type,title:s.title,price:s.price,chg:s.chg,strength:s.strength,priority:s.priority})),
+      opportunities:allCryptoOpportunities.filter(o=>o.score>=65).slice(0,10).map(o=>({symbol:o.coin,score:o.score,isBuy:o.isBuy,price:o.price,chg24:o.chg24,rsi:o.rsi}))
+    }));
+  }catch(e){}
+}
+
+// ── SIGNAL FACTORY ──
+function makeSignal(coin,type,title,desc,metrics,price,chg,strength,priority,suggestion,tradeDetail){
+  return{
+    id:coin+'_'+type+'_'+Date.now(),
+    coin,type,title,desc,metrics,price,chg:parseFloat(chg),
+    strength:Math.round(strength),priority,suggestion:suggestion||null,
+    tradeDetail:tradeDetail||null,
+    time:Date.now()
+  };
+}
+
+// ── RSI CALCULATION ──
+function calcRSI(closes,period=14){
+  if(closes.length<period+1)return 50;
+  let gains=0,losses=0;
+  for(let i=1;i<=period;i++){
+    const d=closes[i]-closes[i-1];
+    if(d>0)gains+=d;else losses+=Math.abs(d);
+  }
+  let avgG=gains/period, avgL=losses/period;
+  for(let i=period+1;i<closes.length;i++){
+    const d=closes[i]-closes[i-1];
+    avgG=(avgG*(period-1)+(d>0?d:0))/period;
+    avgL=(avgL*(period-1)+(d<0?Math.abs(d):0))/period;
+  }
+  if(avgL===0)return 100;
+  const rs=avgG/avgL;
+  return 100-(100/(1+rs));
+}
+
+// ── GRID SCORE ──
+function calcGridScore(chg24,range24pct,rsi,vol24){
+  let score=0;
+  // Volatilitate optimă (10-50%)
+  if(range24pct>=10&&range24pct<=50)score+=30;
+  else if(range24pct>=5&&range24pct<10)score+=15;
+  else if(range24pct>50&&range24pct<=80)score+=10;
+  // RSI zona neutru (40-60 ideal)
+  if(rsi>=40&&rsi<=60)score+=25;
+  else if(rsi>=30&&rsi<40||rsi>60&&rsi<=70)score+=15;
+  // Schimbare 24h moderată (semn de stabilitate)
+  if(Math.abs(chg24)<=5)score+=20;
+  else if(Math.abs(chg24)<=10)score+=10;
+  // Volum decent
+  if(vol24>=5000000)score+=25;
+  else if(vol24>=1000000)score+=15;
+  return Math.min(100,score);
+}
+
+// ── RENDER ──
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.ftag').forEach(t=>t.classList.remove('act'));
+  el.classList.add('act');
+  renderSignals();
+}
+function setTab(t,el){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('act'));
+  el.classList.add('act');
+  renderSignals();
+}
+
+function renderSignals(){
+  if(currentTab==='reco'){ renderCryptoRecommendations(); return; }
+  if(currentTab==='heatmap'){ renderCryptoHeatmap(); return; }
+  const container=document.getElementById('signalsContainer');
+  const q=(document.getElementById('searchInp').value||'').toLowerCase();
+
+  let source = currentTab==='history' ? historySignals : allSignals;
+
+  // Tab filter
+  if(currentTab==='live') source=source.filter(s=>Date.now()-s.time<120000);
+  else if(currentTab==='grid') source=source.filter(s=>s.type==='grid');
+
+  // Type filter
+  if(currentFilter==='pump') source=source.filter(s=>s.type==='pump');
+  else if(currentFilter==='dump') source=source.filter(s=>s.type==='dump');
+  else if(currentFilter==='grid') source=source.filter(s=>s.type==='grid');
+  else if(currentFilter==='rsi') source=source.filter(s=>s.type==='rsi-low'||s.type==='rsi-high');
+  else if(currentFilter==='high') source=source.filter(s=>s.priority==='high');
+
+  // Search
+  if(q) source=source.filter(s=>s.coin.toLowerCase().includes(q));
+
+  if(!source.length){
+    if(!running){
+      container.innerHTML=`<div class="empty"><div class="empty-icon">🔭</div><div class="empty-title">Scanner oprit</div><div class="empty-sub">Apasă <strong>▶ Pornește Scanner</strong> pentru a începe scanarea automată a oportunităților.<br><br>Scannerul verifică volatilitatea, RSI, volumul și momentul potrivit pentru grid bot pe top ${document.getElementById('topN').value} coinuri.</div></div>`;
+    } else {
+      container.innerHTML=`<div class="scan-anim"><div class="scan-ring"></div><div class="scan-txt">Se scanează coinurile...</div><div class="scan-coin" id="scanCoinTxt"></div></div>`;
+    }
+    return;
+  }
+
+  const typeIcons={pump:'🚀',dump:'📉',volatility:'⚡',['rsi-low']:'📊',['rsi-high']:'📊',volume:'📦',grid:'⚙️',breakout:'💥'};
+  const typeStripe={pump:'stripe-pump',dump:'stripe-dump',volatility:'stripe-volatility',['rsi-low']:'stripe-rsi-low',['rsi-high']:'stripe-rsi-high',volume:'stripe-volume',grid:'stripe-grid',breakout:'stripe-breakout'};
+  const typeBadge={pump:'tb-pump',dump:'tb-dump',volatility:'tb-volatility',['rsi-low']:'tb-rsi-low',['rsi-high']:'tb-rsi-high',volume:'tb-volume',grid:'tb-grid',breakout:'tb-breakout'};
+
+  const suggLabels={long:'▲ LONG',short:'▼ SHORT',scalp:'⚡ SCALP',grid:'⚙️ GRID',wait:'⏳ WAIT',dca:'📥 DCA'};
+  const suggClass={long:'ta-long',short:'ta-short',scalp:'ta-scalp',grid:'ta-grid',wait:'ta-wait',dca:'ta-dca'};
+  const strengthColor=s=>s>=80?'#059669':s>=60?'#d97706':'#64748b';
+  const priorityClass=p=>p==='high'?'priority-high':p==='med'?'priority-med':'';
+
+  container.innerHTML=`<div class="signals-grid">${source.slice(0,40).map(s=>{
+    const chgStr=(s.chg>=0?'+':'')+s.chg.toFixed(2)+'%';
+    const m=s.metrics||{};
+    const ago=timeAgo(s.time);
+    const pionexUrl=`https://www.pionex.com/en/trade/${s.coin}_USDT`;
+    const tvUrl=`https://www.tradingview.com/chart/?symbol=BINANCE:${s.coin}USDT`;
+    const suggHtml=s.suggestion?`<div class="trade-action ${suggClass[s.suggestion]||'ta-wait'}">${suggLabels[s.suggestion]||s.suggestion}</div>`:'';
+    const tdHtml=s.tradeDetail?`<div class="trade-detail">
+      <div class="td-item"><div class="td-lbl">📍 Entry</div><div class="td-val">${s.tradeDetail.entry}</div></div>
+      <div class="td-item"><div class="td-lbl">🎯 Target</div><div class="td-val" style="color:var(--green)">${s.tradeDetail.tp}</div></div>
+      <div class="td-item"><div class="td-lbl">🛡️ Stop</div><div class="td-val" style="color:var(--red)">${s.tradeDetail.sl} <span style="font-size:.48rem;color:${s.tradeDetail.risc==='RIDICAT'?'var(--red)':s.tradeDetail.risc==='MEDIU'?'var(--gold)':'var(--green)'};font-weight:800">${s.tradeDetail.risc}</span></div></div>
+    </div>`:'';
+
+    return`<div class="sig-card ${priorityClass(s.priority)}">
+      <div class="sig-stripe ${typeStripe[s.type]||'stripe-volatility'}"></div>
+      <div class="sig-body">
+        <div class="sig-top">
+          <div class="sig-left">
+            <div class="sig-coin">
+              ${s.coin}
+              <span class="sig-type-badge ${typeBadge[s.type]||'tb-volatility'}">${typeIcons[s.type]||'⚡'} ${s.title}</span>
+            </div>
+            <div class="sig-price">${formatP(s.price)}</div>
+          </div>
+          <div class="sig-right">
+            <div class="sig-chg ${s.chg>=0?'up':'down'}">${chgStr}</div>
+            <div class="sig-time">${ago}</div>
+          </div>
+        </div>
+
+        ${suggHtml}
+        <div class="sig-desc">${s.desc}</div>
+        ${tdHtml}
+
+        <div class="sig-metrics">
+          ${m.rsi!==undefined?`<div class="metric"><div class="metric-val" style="color:${m.rsi<=30?'var(--acc)':m.rsi>=70?'var(--orange)':'var(--t2)'}">${m.rsi.toFixed(0)}</div><div class="metric-lbl">RSI 14</div></div>`:''}
+          ${m.range24pct!==undefined?`<div class="metric"><div class="metric-val" style="color:var(--gold)">${m.range24pct.toFixed(1)}%</div><div class="metric-lbl">Gamă 24h</div></div>`:''}
+          ${m.gridScore!==undefined?`<div class="metric"><div class="metric-val" style="color:var(--cyan)">${m.gridScore}</div><div class="metric-lbl">Grid Score</div></div>`:''}
+          ${m.volSpike!==undefined?`<div class="metric"><div class="metric-val" style="color:var(--purple)">${m.volSpike.toFixed(1)}×</div><div class="metric-lbl">Vol Spike</div></div>`:''}
+          ${m.vol24!==undefined?`<div class="metric"><div class="metric-val">${m.vol24>=1e9?(m.vol24/1e9).toFixed(1)+'B':m.vol24>=1e6?(m.vol24/1e6).toFixed(0)+'M':'<1M'}</div><div class="metric-lbl">Vol 24h</div></div>`:''}
+        </div>
+
+        <div class="strength-wrap">
+          <div class="strength-lbl"><span>Intensitate semnal</span><span style="color:${strengthColor(s.strength)};font-weight:700">${s.strength}%</span></div>
+          <div class="strength-track"><div class="strength-fill" style="width:${s.strength}%;background:${strengthColor(s.strength)}"></div></div>
+        </div>
+
+        <div class="sig-actions">
+          <a class="btn-sig" href="${tvUrl}" target="_blank" rel="noopener">📈 TradingView</a>
+          <a class="btn-sig" href="${pionexUrl}" target="_blank" rel="noopener">⚡ Pionex</a>
+          ${s.type==='grid'&&m.sugLow?`<a class="btn-sig primary" href="grid-calculator.html?coin=${s.coin}&low=${m.sugLow.toFixed(4)}&high=${m.sugHigh.toFixed(4)}" target="_blank">⚙️ Grid Calc</a>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function updateStats(signals){
+  document.getElementById('st-signals').textContent=signals.length;
+  document.getElementById('st-alerts').textContent=totalAlerts;
+  document.getElementById('st-scans').textContent=totalScans;
+  const top=signals[0];
+  document.getElementById('st-top').textContent=top?top.coin:'—';
+}
+
+// ── AUDIO ──
+function playSignalSound(type){
+  if(!audioCtx)return;
+  const freqMap={pump:[523,659,784],dump:[784,659,523],volatility:[440,554,659],['rsi-low']:[523,659],['rsi-high']:[659,523],volume:[440,440,880],grid:[523,784],breakout:[523,659,784,1047]};
+  const freqs=freqMap[type]||[440,550];
+  freqs.forEach((f,i)=>{
+    try{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g);g.connect(audioCtx.destination);
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.1,audioCtx.currentTime+i*.1);
+      g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+i*.1+.15);
+      o.start(audioCtx.currentTime+i*.1);
+      o.stop(audioCtx.currentTime+i*.1+.15);
+    }catch(e){}
+  });
+}
+
+// ── PROGRESS ──
+function setProgress(pct,coin=''){
+  document.getElementById('progressFill').style.width=pct+'%';
+  if(coin) document.getElementById('statusTxt').textContent='SCAN: '+coin;
+  const el=document.getElementById('scanCoinTxt');
+  if(el&&coin) el.textContent=coin;
+}
+
+// ── LOG ──
+function log(msg,type='info'){
+  const body=document.getElementById('logBody');
+  const time=new Date().toLocaleTimeString('ro-RO');
+  const div=document.createElement('div');
+  div.className='ll';
+  div.innerHTML=`<span class="lt">${time}</span><span class="l${type}">${msg}</span>`;
+  body.insertBefore(div,body.firstChild);
+  while(body.children.length>50)body.removeChild(body.lastChild);
+}
+function clearLog(){document.getElementById('logBody').innerHTML='';}
+
+// ── UTILS ──
+function formatP(p){
+  if(!p||isNaN(p))return'—';
+  if(p>=10000)return'$'+p.toLocaleString('en',{maximumFractionDigits:0});
+  if(p>=100)return'$'+p.toFixed(2);
+  if(p>=1)return'$'+p.toFixed(4);
+  return'$'+p.toFixed(6);
+}
+function timeAgo(ts){
+  const d=Math.floor((Date.now()-ts)/1000);
+  if(d<60)return d+'s';
+  if(d<3600)return Math.floor(d/60)+'m';
+  return Math.floor(d/3600)+'h';
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+let toastT;
+function showToast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast '+type+' show';
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
